@@ -18,12 +18,13 @@ def init_database():
         )
     ''')
     
-    # Таблица постов
+    # Таблица постов (добавили поле image_url)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS posts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
             text TEXT NOT NULL,
+            image_url TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users (id)
         )
@@ -33,7 +34,6 @@ def init_database():
     conn.close()
 
 def add_user(username, password_hash):
-    """Добавляет пользователя в базу"""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     try:
@@ -44,12 +44,11 @@ def add_user(username, password_hash):
         conn.commit()
         return True
     except sqlite3.IntegrityError:
-        return False  # Пользователь уже есть
+        return False
     finally:
         conn.close()
 
 def get_user(username):
-    """Получает пользователя по имени"""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute(
@@ -67,13 +66,13 @@ def get_user(username):
         }
     return None
 
-def add_post(user_id, text):
-    """Добавляет пост"""
+def add_post(user_id, text, image_url=None):
+    """Добавляет пост с опциональной картинкой"""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO posts (user_id, text) VALUES (?, ?)",
-        (user_id, text)
+        "INSERT INTO posts (user_id, text, image_url) VALUES (?, ?, ?)",
+        (user_id, text, image_url)
     )
     conn.commit()
     conn.close()
@@ -83,7 +82,7 @@ def get_all_posts():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT posts.text, users.username, posts.created_at
+        SELECT posts.id, posts.text, users.username, posts.created_at, posts.image_url
         FROM posts
         JOIN users ON posts.user_id = users.id
         ORDER BY posts.created_at DESC
@@ -94,18 +93,46 @@ def get_all_posts():
     posts = []
     for post in posts_data:
         posts.append({
-            'text': post[0],
-            'author': post[1],
-            'date': post[2]
+            'id': post[0],
+            'text': post[1],
+            'author': post[2],
+            'date': post[3],
+            'image_url': post[4]
         })
     return posts
+
+def delete_post(post_id, user_id):
+    """Удаляет пост только если он принадлежит пользователю"""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "DELETE FROM posts WHERE id = ? AND user_id = ?",
+        (post_id, user_id)
+    )
+    deleted = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return deleted
+
+def get_post_author(post_id):
+    """Получает ID автора поста"""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT user_id FROM posts WHERE id = ?",
+        (post_id,)
+    )
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else None
 
 # Создаем таблицы при первом запуске
 if not os.path.exists(DB_FILE):
     init_database()
     # Добавляем начальные посты
-    add_user("Администратор", "fake_hash")
+    admin_hash = "fake_hash_for_admin"
+    add_user("Администратор", admin_hash)
     admin = get_user("Администратор")
     if admin:
         add_post(admin['id'], "Добро пожаловать в нашу социальную сеть!")
-        add_post(admin['id'], "Теперь мы на базе данных SQLite!")  
+        add_post(admin['id'], "Теперь можно добавлять картинки и удалять посты!")
