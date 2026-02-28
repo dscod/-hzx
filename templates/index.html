@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Моя Соцсеть</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f0f2f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1877f2;
+            text-align: center;
+        }
+        .user-bar {
+            text-align: right;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .user-bar a {
+            color: #1877f2;
+            text-decoration: none;
+            margin-left: 10px;
+        }
+        .user-bar a:hover {
+            text-decoration: underline;
+        }
+        .post {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background-color: white;
+        }
+        .author {
+            font-weight: bold;
+            color: #1877f2;
+            margin-bottom: 5px;
+        }
+        .date {
+            color: #65676b;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .post-text {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        button {
+            background-color: #1877f2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #166fe5;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #ddd;
+            margin: 20px 0;
+        }
+        .welcome-message {
+            text-align: center;
+            color: #65676b;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Моя Соцсеть</h1>
+        
+        <!-- Блок с пользователем -->
+        <div class="user-bar">
+            {% if username %}
+                <span>Привет, {{ username }}!</span>
+                <a href="/logout">Выйти</a>
+            {% else %}
+                <a href="/login">Вход</a> | 
+                <a href="/register">Регистрация</a>
+            {% endif %}
+        </div>
+        
+        <!-- Форма для нового поста (только для залогиненных) -->
+        {% if username %}
+        <h2>Новый пост</h2>
+        <form method="POST" action="/add_post">
+            <div class="form-group">
+                <textarea name="text" placeholder="Что у вас нового?" required></textarea>
+            </div>
+            <button type="submit">Опубликовать</button>
+        </form>
+        <hr>
+        {% else %}
+        <div class="welcome-message">
+            Чтобы писать посты, <a href="/login">войдите</a> или <a href="/register">зарегистрируйтесь</a>
+        </div>
+        {% endif %}
+        
+        <!-- Список постов -->
+        <h2>Лента</h2>
+        {% for post in posts %}
+        <div class="post">
+            <div class="author">{{ post.author }}</div>
+            <div class="date">{{ post.date }}</div>
+            <div class="post-text">{{ post.text }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

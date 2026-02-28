@@ -1,0 +1,71 @@
+from flask import Flask, render_template, request, redirect, url_for, session
+from werkzeug.security import generate_password_hash, check_password_hash
+import database
+
+app = Flask(__name__)
+app.secret_key = 'super-secret-key-123'
+
+@app.route('/')
+def index():
+    username = session.get('username')
+    posts = database.get_all_posts()
+    return render_template('index.html', posts=posts, username=username)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        # Проверяем, есть ли уже такой пользователь
+        if database.get_user(username):
+            return render_template('register.html', error='Такое имя уже занято!')
+        
+        # Хешируем пароль и сохраняем
+        password_hash = generate_password_hash(password)
+        database.add_user(username, password_hash)
+        
+        # Сразу логиним
+        session['username'] = username
+        return redirect(url_for('index'))
+    
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        user = database.get_user(username)
+        if user and check_password_hash(user['password'], password):
+            session['username'] = username
+            return redirect(url_for('index'))
+        else:
+            return render_template('login.html', error='Неверное имя или пароль')
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('index'))
+
+@app.route('/add_post', methods=['POST'])
+def add_post():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    
+    text = request.form['text']
+    username = session['username']
+    
+    # Получаем ID пользователя
+    user = database.get_user(username)
+    
+    if text and user:
+        database.add_post(user['id'], text)
+    
+    return redirect(url_for('index'))
+
+if __name__ == '__main__':
+    app.run(debug=True)
