@@ -46,6 +46,7 @@
             font-weight: bold;
             color: #1877f2;
             margin-bottom: 5px;
+            font-size: 16px;
         }
         .date {
             color: #65676b;
@@ -55,6 +56,34 @@
         .post-text {
             font-size: 16px;
             line-height: 1.5;
+            margin: 10px 0;
+        }
+        .post-image {
+            margin: 10px 0;
+            text-align: center;
+        }
+        .post-image img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .delete-form {
+            margin-top: 10px;
+            text-align: right;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            width: auto;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
         }
         .form-group {
             margin-bottom: 15px;
@@ -70,6 +99,16 @@
         textarea {
             height: 100px;
             resize: vertical;
+        }
+        input[type="file"] {
+            padding: 10px 0;
+            border: none;
+        }
+        .small-text {
+            color: #65676b;
+            font-size: 12px;
+            display: block;
+            margin-top: 5px;
         }
         button {
             background-color: #1877f2;
@@ -93,6 +132,17 @@
             text-align: center;
             color: #65676b;
             margin: 20px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .welcome-message a {
+            color: #1877f2;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .welcome-message a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -103,57 +153,64 @@
         <!-- Блок с пользователем -->
         <div class="user-bar">
             {% if username %}
-                <span>Привет, {{ username }}!</span>
+                <span>Привет, <strong>{{ username }}</strong>!</span>
                 <a href="/logout">Выйти</a>
             {% else %}
                 <a href="/login">Вход</a> | 
                 <a href="/register">Регистрация</a>
             {% endif %}
         </div>
-
+        
         <!-- Форма для нового поста (только для залогиненных) -->
         {% if username %}
-        <h2>Новый пост</h2>
-        <form method="POST" action="/add_post" enctype="multipart/form-data"></form>
+        <h2>➕ Новый пост</h2>
+        <form method="POST" action="/add_post" enctype="multipart/form-data">
             <div class="form-group">
                 <textarea name="text" placeholder="Что у вас нового?" required></textarea>
             </div>
-        <div class="form-group">
-            <input type="file" name="image" accept="image/*">
-            <small style="color: #65676b;">Можно прикрепить картинку</small>
-        </div>
-        <button type="submit">Опубликовать</button>
+            <div class="form-group">
+                <input type="file" name="image" accept="image/*">
+                <span class="small-text">Можно прикрепить картинку (jpg, png, gif)</span>
+            </div>
+            <button type="submit">Опубликовать</button>
         </form>
         <hr>
-        {% endif %}
-        
         {% else %}
         <div class="welcome-message">
-            Чтобы писать посты, <a href="/login">войдите</a> или <a href="/register">зарегистрируйтесь</a>
+            ✍️ Чтобы писать посты, <a href="/login">войдите</a> или <a href="/register">зарегистрируйтесь</a>
         </div>
         {% endif %}
-
+        
         <!-- Список постов -->
-        <h2>Лента</h2>
-        {% for post in posts %}
-        <div class="post">
-            <div class="author">{{ post.author }}</div>
-            <div class="date">{{ post.date }}</div>
-            {% if post.image_url %}
-            <div class="post-image">
-                <img src="{{ post.image_url }}" alt="Post image" style="max-width: 100%; max-height: 400px; border-radius: 8px; margin: 10px 0;">
+        <h2>📰 Лента</h2>
+        
+        {% if posts %}
+            {% for post in posts %}
+            <div class="post">
+                <div class="author">{{ post.author }}</div>
+                <div class="date">{{ post.date }}</div>
+                
+                {% if post.image_url %}
+                <div class="post-image">
+                    <img src="{{ post.image_url }}" alt="Изображение к посту">
+                </div>
+                {% endif %}
+                
+                <div class="post-text">{{ post.text }}</div>
+                
+                <!-- Кнопка удаления (только для своих постов) -->
+                {% if username == post.author %}
+                <form method="POST" action="/delete_post/{{ post.id }}" class="delete-form">
+                    <button type="submit" class="delete-btn" onclick="return confirm('Точно удалить этот пост?')">🗑️ Удалить</button>
+                </form>
+                {% endif %}
             </div>
-            {% endif %}
-        <div class="post-text">{{ post.text }}</div>
-    
-    <!-- Кнопка удаления (только для своих постов) -->
-    {% if username == post.author %}
-    <form method="POST" action="/delete_post/{{ post.id }}" style="margin-top: 10px;">
-        <button type="submit" style="background-color: #dc3545; width: auto; padding: 5px 15px;" onclick="return confirm('Удалить пост?')">Удалить</button>
-    </form>
-    {% endif %}
-</div>
-{% endfor %}
+            {% endfor %}
+        {% else %}
+            <div class="welcome-message">
+                😢 Пока нет постов. Будь первым!
+            </div>
+        {% endif %}
     </div>
 </body>
 </html>
