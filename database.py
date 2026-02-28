@@ -18,7 +18,7 @@ def init_database():
         )
     ''')
     
-    # Таблица постов (добавили поле image_url)
+    # Таблица постов
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS posts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,8 +32,10 @@ def init_database():
     
     conn.commit()
     conn.close()
+    print("База данных инициализирована")
 
 def add_user(username, password_hash):
+    """Добавляет пользователя"""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     try:
@@ -49,6 +51,7 @@ def add_user(username, password_hash):
         conn.close()
 
 def get_user(username):
+    """Получает пользователя по имени"""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute(
@@ -124,10 +127,13 @@ def get_post_author(post_id):
     )
     result = cursor.fetchone()
     conn.close()
-    return result[0] if result else None
+    if result:
+        return result[0]
+    return None
 
 # Создаем таблицы при первом запуске
 if not os.path.exists(DB_FILE):
+    print("База данных не найдена, создаем новую...")
     init_database()
     # Добавляем начальные посты
     admin_hash = "fake_hash_for_admin"
@@ -136,3 +142,4 @@ if not os.path.exists(DB_FILE):
     if admin:
         add_post(admin['id'], "Добро пожаловать в нашу социальную сеть!")
         add_post(admin['id'], "Теперь можно добавлять картинки и удалять посты!")
+    print("Начальные данные добавлены")

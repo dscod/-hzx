@@ -1,6 +1,7 @@
-from fastapi import FastAPI, Request, Form, Depends, HTTPException, UploadFile, File
+from fastapi import FastAPI, Request, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 from werkzeug.security import generate_password_hash, check_password_hash
 import database
@@ -11,11 +12,12 @@ from typing import Optional
 app = FastAPI(title="Моя Соцсеть")
 app.add_middleware(SessionMiddleware, secret_key="super-secret-key-123", session_cookie="session")
 
-templates = Jinja2Templates(directory="templates")
+# Подключаем статические файлы (для картинок)
+os.makedirs("static", exist_ok=True)
+os.makedirs("static/uploads", exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Создаем папку для загруженных изображений
-UPLOAD_DIR = "static/uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
@@ -93,7 +95,7 @@ async def add_post(
         # Сохраняем картинку
         file_extension = os.path.splitext(image.filename)[1]
         file_name = f"{user['id']}_{os.urandom(4).hex()}{file_extension}"
-        file_path = os.path.join(UPLOAD_DIR, file_name)
+        file_path = os.path.join("static/uploads", file_name)
         
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(image.file, buffer)
@@ -118,7 +120,7 @@ async def delete_post(request: Request, post_id: int):
     # Проверяем, что пост принадлежит пользователю
     author_id = database.get_post_author(post_id)
     if author_id != user['id']:
-        return RedirectResponse(url="/", status_code=303)  # Нельзя удалить чужой пост
+        return RedirectResponse(url="/", status_code=303)
     
     database.delete_post(post_id, user['id'])
     return RedirectResponse(url="/", status_code=303)
