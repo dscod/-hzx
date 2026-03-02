@@ -217,36 +217,6 @@
         
         <!-- Список постов -->
         <h2>📰 Лента</h2>
-        
-        {% if posts %}
-            {% for post in posts %}
-            <div class="post">
-                <div class="author">{{ post.author }}</div>
-                <div class="date">{{ post.date }}</div>
-                
-                {% if post.image_url %}
-                <div class="post-image">
-                    <img src="{{ post.image_url }}" alt="Изображение к посту">
-                </div>
-                {% endif %}
-                
-                <div class="post-text">{{ post.text }}</div>
-                
-                <!-- Кнопка удаления (только для своих постов) -->
-                {% if username == post.author %}
-                <form method="POST" action="/delete_post/{{ post.id }}" class="delete-form">
-                    <button type="submit" class="delete-btn" onclick="return confirm('Точно удалить этот пост?')">🗑️ Удалить</button>
-                </form>
-                {% endif %}
-            </div>
-            {% endfor %}
-        {% else %}
-            <div class="welcome-message">
-                😢 Пока нет постов. Будь первым!
-            </div>
-        {% endif %}
-        <!-- Список постов -->
-        <h2>📰 Лента</h2>
 
         {% if posts %}
             {% for post in posts %}
