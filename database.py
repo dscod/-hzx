@@ -82,6 +82,24 @@ def add_user(username, password_hash):
         print(f"❌ Ошибка добавления пользователя: {e}")
         return False
 
+def add_user(username, password_hash):
+    try:
+        print(f"🔍 add_user: {username}")
+        with httpx.Client() as client:
+            response = client.post(
+                f"{SUPABASE_URL}/rest/v1/users",
+                headers=HEADERS,
+                json={"username": username, "password": password_hash}
+            )
+            print(f"🔍 Response status: {response.status_code}")
+            print(f"🔍 Response body: {response.text}")
+            return response.status_code == 201
+    except Exception as e:
+        print(f"❌ Ошибка добавления пользователя: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+    
 def get_user(username):
     try:
         with httpx.Client() as client:

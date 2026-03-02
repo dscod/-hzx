@@ -38,6 +38,7 @@ async def index(request: Request):
         {"request": request, "posts": posts, "username": username}
     )
 
+# ===== РЕГИСТРАЦИЯ =====
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
@@ -48,18 +49,36 @@ async def register(
     username: str = Form(...),
     password: str = Form(...)
 ):
-    if database.get_user(username):
+    print(f"🔍 Регистрация: username={username}")
+    
+    # Проверяем, есть ли пользователь
+    existing_user = database.get_user(username)
+    print(f"🔍 Существующий пользователь: {existing_user}")
+    
+    if existing_user:
+        print("🔍 Имя занято")
         return templates.TemplateResponse(
             "register.html", 
             {"request": request, "error": "Такое имя уже занято!"}
         )
     
+    # Хешируем пароль
+    print("🔍 Хешируем пароль")
     password_hash = generate_password_hash(password)
-    database.add_user(username, password_hash)
     
+    # Добавляем пользователя
+    print("🔍 Добавляем в БД")
+    result = database.add_user(username, password_hash)
+    print(f"🔍 Результат добавления: {result}")
+    
+    # Сразу логиним
+    print("🔍 Устанавливаем сессию")
     request.session["username"] = username
+    
+    print("🔍 Редирект на главную")
     return RedirectResponse(url="/", status_code=303)
 
+# ===== ВХОД =====
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
@@ -70,12 +89,18 @@ async def login(
     username: str = Form(...),
     password: str = Form(...)
 ):
+    print(f"🔍 Вход: username={username}")
+    
     user = database.get_user(username)
+    print(f"🔍 Найден пользователь: {user}")
     
     if user and check_password_hash(user["password"], password):
+        print("🔍 Пароль верный")
         request.session["username"] = username
+        print("🔍 Редирект на главную")
         return RedirectResponse(url="/", status_code=303)
     else:
+        print("🔍 Неверное имя или пароль")
         return templates.TemplateResponse(
             "login.html", 
             {"request": request, "error": "Неверное имя или пароль"}
@@ -136,7 +161,6 @@ async def delete_post(request: Request, post_id: int):
     return RedirectResponse(url="/", status_code=303)
 
 # ===== МАРШРУТЫ ДЛЯ ЛАЙКОВ =====
-
 @app.post("/like/{post_id}")
 async def like_post(request: Request, post_id: int):
     username = request.session.get("username")
@@ -164,7 +188,6 @@ async def unlike_post(request: Request, post_id: int):
     return RedirectResponse(url="/", status_code=303)
 
 # ===== МАРШРУТЫ ДЛЯ КОММЕНТАРИЕВ =====
-
 @app.post("/comment/{post_id}")
 async def add_comment(
     request: Request, 
@@ -185,7 +208,6 @@ async def add_comment(
     return RedirectResponse(url="/", status_code=303)
 
 # ===== МАРШРУТЫ ДЛЯ АВАТАРОК =====
-
 @app.post("/upload_avatar")
 async def upload_avatar(
     request: Request,
@@ -219,7 +241,6 @@ async def upload_avatar(
     return RedirectResponse(url="/profile/" + username, status_code=303)
 
 # ===== МАРШРУТЫ ДЛЯ ПРОФИЛЯ =====
-
 @app.get("/profile/{username}", response_class=HTMLResponse)
 async def profile(request: Request, username: str):
     current_user = request.session.get("username")
@@ -243,7 +264,6 @@ async def profile(request: Request, username: str):
     )
 
 # ===== АДМИН-ПАНЕЛЬ =====
-
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_panel(request: Request):
     username = request.session.get("username")
@@ -254,13 +274,17 @@ async def admin_panel(request: Request):
     users = database.get_all_users()
     stats = database.get_site_stats()
     
+    # Получаем посты для отображения в админке
+    posts = database.get_all_posts()
+    
     return templates.TemplateResponse(
         "admin.html",
         {
             "request": request,
             "username": username,
             "users": users,
-            "stats": stats
+            "stats": stats,
+            "posts": posts
         }
     )
 
