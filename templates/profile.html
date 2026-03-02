@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Профиль {{ profile_username }}</title>
+    <title>Профиль {{ profile_user }} - PIZDA MEDIA</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -34,14 +34,80 @@
         }
         .profile-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin: 30px 0;
             padding: 20px;
             background-color: #f8f9fa;
             border-radius: 10px;
         }
-        .profile-header h2 {
+        .avatar-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 20px;
+        }
+        .avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #1877f2;
+        }
+        .avatar-placeholder {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background-color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #666;
+            border: 3px solid #1877f2;
+        }
+        .upload-avatar-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .upload-avatar-btn:hover {
+            background-color: #166fe5;
+        }
+        #avatar-upload {
+            display: none;
+        }
+        .profile-username {
+            font-size: 24px;
+            font-weight: bold;
             color: #1877f2;
-            margin: 0;
+        }
+        .profile-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1877f2;
+        }
+        .stat-label {
+            color: #65676b;
+            font-size: 14px;
         }
         .post {
             border: 1px solid #ddd;
@@ -50,84 +116,46 @@
             border-radius: 8px;
             background-color: white;
         }
-        .author {
-            font-weight: bold;
-            color: #1877f2;
-            margin-bottom: 5px;
-            cursor: pointer;
-        }
-        .author a {
-            color: #1877f2;
-            text-decoration: none;
-        }
-        .author a:hover {
-            text-decoration: underline;
-        }
-        .date {
-            color: #65676b;
-            font-size: 12px;
+        .post-header {
+            display: flex;
+            align-items: center;
             margin-bottom: 10px;
         }
-        .post-text {
-            font-size: 16px;
-            line-height: 1.5;
-            margin: 10px 0;
+        .post-author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
         }
-        .post-image {
-            margin: 10px 0;
-            text-align: center;
+        .post-author-info {
+            flex: 1;
+        }
+        .post-author-name {
+            font-weight: bold;
+            color: #1877f2;
+        }
+        .post-date {
+            color: #65676b;
+            font-size: 12px;
         }
         .post-image img {
             max-width: 100%;
             max-height: 400px;
             border-radius: 8px;
-        }
-        .like-section {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
-        }
-        .like-button {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 5px;
-            width: auto;
-        }
-        .like-button.liked {
-            color: #e91e63;
-        }
-        .like-button:not(.liked) {
-            color: #999;
-        }
-        .like-count {
-            color: #65676b;
-            font-size: 14px;
+            margin: 10px 0;
         }
         .back-link {
-            display: block;
+            display: inline-block;
             margin-bottom: 20px;
             color: #1877f2;
             text-decoration: none;
-        }
-        .back-link:hover {
-            text-decoration: underline;
-        }
-        .no-posts {
-            text-align: center;
-            color: #65676b;
-            padding: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Моя Соцсеть</h1>
+        <a href="/" class="back-link">← На главную</a>
         
         <div class="user-bar">
             {% if username %}
@@ -138,21 +166,52 @@
                 <a href="/register">Регистрация</a>
             {% endif %}
         </div>
-
-        <a href="/" class="back-link">← На главную</a>
-
+        
         <div class="profile-header">
-            <h2>{{ profile_username }}</h2>
-            <p>Постов: {{ posts|length }}</p>
+            <div class="avatar-container">
+                {% if profile_avatar %}
+                <img src="{{ profile_avatar }}" alt="Avatar" class="avatar">
+                {% else %}
+                <div class="avatar-placeholder">
+                    {{ profile_user[0]|upper }}
+                </div>
+                {% endif %}
+                
+                {% if username == profile_user %}
+                <form method="POST" action="/upload_avatar" enctype="multipart/form-data" id="avatar-form">
+                    <input type="file" name="avatar" id="avatar-upload" accept="image/*" onchange="document.getElementById('avatar-form').submit()">
+                    <button type="button" class="upload-avatar-btn" onclick="document.getElementById('avatar-upload').click()">📷</button>
+                </form>
+                {% endif %}
+            </div>
+            
+            <div class="profile-username">{{ profile_user }}</div>
+            <div class="profile-stats">
+                <div class="stat">
+                    <div class="stat-value">{{ posts|length }}</div>
+                    <div class="stat-label">постов</div>
+                </div>
+            </div>
         </div>
-
+        
+        <h2>Посты {{ profile_user }}</h2>
+        
         {% if posts %}
             {% for post in posts %}
             <div class="post">
-                <div class="author">
-                    <a href="/user/{{ post.author }}">{{ post.author }}</a>
+                <div class="post-header">
+                    {% if post.author_avatar %}
+                    <img src="{{ post.author_avatar }}" alt="Avatar" class="post-author-avatar">
+                    {% else %}
+                    <div class="post-author-avatar" style="background-color: #ddd; display: flex; align-items: center; justify-content: center; color: #666;">
+                        {{ post.author[0]|upper }}
+                    </div>
+                    {% endif %}
+                    <div class="post-author-info">
+                        <div class="post-author-name">{{ post.author }}</div>
+                        <div class="post-date">{{ post.date }}</div>
+                    </div>
                 </div>
-                <div class="date">{{ post.date }}</div>
                 
                 {% if post.image_url %}
                 <div class="post-image">
@@ -160,32 +219,11 @@
                 </div>
                 {% endif %}
                 
-                <div class="post-text">{{ post.text }}</div>
-                
-                <div class="like-section">
-                    {% if username %}
-                        <form method="POST" action="/{% if post.user_liked %}un{% endif %}like/{{ post.id }}" style="margin: 0;">
-                            <button type="submit" class="like-button {% if post.user_liked %}liked{% endif %}">
-                                {% if post.user_liked %}❤️{% else %}🤍{% endif %}
-                            </button>
-                        </form>
-                    {% else %}
-                        <span class="like-button">🤍</span>
-                    {% endif %}
-                    <span class="like-count">{{ post.likes }} {{ 'лайк' if post.likes == 1 else 'лайков' }}</span>
-                </div>
-
-                {% if username == post.author %}
-                <form method="POST" action="/delete_post/{{ post.id }}" class="delete-form" style="margin-top: 10px;">
-                    <button type="submit" class="delete-btn" onclick="return confirm('Точно удалить этот пост?')">🗑️ Удалить</button>
-                </form>
-                {% endif %}
+                <div>{{ post.text }}</div>
             </div>
             {% endfor %}
         {% else %}
-            <div class="no-posts">
-                😢 У пользователя пока нет постов.
-            </div>
+            <p style="text-align: center; color: #65676b;">У пользователя пока нет постов</p>
         {% endif %}
     </div>
 </body>

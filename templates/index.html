@@ -42,16 +42,48 @@
             border-radius: 8px;
             background-color: white;
         }
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .post-author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
+        }
+        .post-author-avatar-placeholder {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-weight: bold;
+        }
+        .post-author-info {
+            flex: 1;
+        }
         .author {
             font-weight: bold;
             color: #1877f2;
-            margin-bottom: 5px;
-            font-size: 16px;
+            margin-bottom: 2px;
+        }
+        .author a {
+            color: #1877f2;
+            text-decoration: none;
+        }
+        .author a:hover {
+            text-decoration: underline;
         }
         .date {
             color: #65676b;
             font-size: 12px;
-            margin-bottom: 10px;
         }
         .post-text {
             font-size: 16px;
@@ -67,6 +99,112 @@
             max-height: 400px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .post-actions {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+        .like-form, .comment-form {
+            display: inline;
+        }
+        .like-btn {
+            background: none;
+            border: none;
+            color: #65676b;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+            width: auto;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .like-btn:hover {
+            background-color: #f0f2f5;
+        }
+        .like-btn.liked {
+            color: #e41e3f;
+        }
+        .like-btn.liked:hover {
+            background-color: #ffe6e9;
+        }
+        .comments-section {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+        .comment {
+            padding: 8px;
+            margin-bottom: 8px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .comment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .comment-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 8px;
+            object-fit: cover;
+        }
+        .comment-avatar-placeholder {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #ccc;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .comment-author {
+            font-weight: bold;
+            color: #1877f2;
+            font-size: 14px;
+            margin-right: 8px;
+        }
+        .comment-author a {
+            color: #1877f2;
+            text-decoration: none;
+        }
+        .comment-author a:hover {
+            text-decoration: underline;
+        }
+        .comment-date {
+            color: #65676b;
+            font-size: 11px;
+        }
+        .comment-text {
+            font-size: 14px;
+            margin-left: 32px;
+        }
+        .comment-input {
+            width: calc(100% - 80px);
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        .comment-submit {
+            width: 70px;
+            padding: 8px;
+            background-color: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
         }
         .delete-form {
             margin-top: 10px;
@@ -144,38 +282,12 @@
         .welcome-message a:hover {
             text-decoration: underline;
         }
-        .like-section {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
-        }
-        .like-button {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 5px;
-            width: auto;
-        }
-        .like-button.liked {
-            color: #e91e63;
-        }
-        .like-button:not(.liked) {
-            color: #999;
-        }
-        .like-count {
-            color: #65676b;
-            font-size: 14px;
-        }
-        .author a {
+        .profile-link {
             color: #1877f2;
             text-decoration: none;
+            cursor: pointer;
         }
-        .author a:hover {
+        .profile-link:hover {
             text-decoration: underline;
         }
     </style>
@@ -188,6 +300,9 @@
         <div class="user-bar">
             {% if username %}
                 <span>Привет, <strong>{{ username }}</strong>!</span>
+                {% if username == 'dscod' or database.is_admin(username) %}  <!-- Замени на свой логин -->
+                <a href="/admin">Админка</a>
+                {% endif %}
                 <a href="/logout">Выйти</a>
             {% else %}
                 <a href="/login">Вход</a> | 
@@ -221,32 +336,80 @@
         {% if posts %}
             {% for post in posts %}
             <div class="post">
-                <div class="author">
-                    <a href="/user/{{ post.author }}">{{ post.author }}</a>
+                <!-- Заголовок поста с аватаркой и именем автора -->
+                <div class="post-header">
+                    {% if post.author_avatar %}
+                    <img src="{{ post.author_avatar }}" alt="Avatar" class="post-author-avatar">
+                    {% else %}
+                    <div class="post-author-avatar-placeholder">
+                        {{ post.author[0]|upper }}
+                    </div>
+                    {% endif %}
+                    <div class="post-author-info">
+                        <div class="author">
+                            <a href="/profile/{{ post.author }}" class="profile-link">{{ post.author }}</a>
+                        </div>
+                        <div class="date">{{ post.date }}</div>
+                    </div>
                 </div>
-                <div class="date">{{ post.date }}</div>
-        
+                
                 {% if post.image_url %}
                 <div class="post-image">
                     <img src="{{ post.image_url }}" alt="Изображение к посту">
                 </div>
                 {% endif %}
-        
+                
                 <div class="post-text">{{ post.text }}</div>
-        
-                <div class="like-section">
+                
+                <!-- Действия с постом (лайки) -->
+                <div class="post-actions">
                     {% if username %}
-                        <form method="POST" action="/{% if post.user_liked %}un{% endif %}like/{{ post.id }}" style="margin: 0;">
-                            <button type="submit" class="like-button {% if post.user_liked %}liked{% endif %}">
-                                {% if post.user_liked %}❤️{% else %}🤍{% endif %}
-                            </button>
+                        {% if post.user_liked %}
+                        <form method="POST" action="/unlike/{{ post.id }}" class="like-form">
+                            <button type="submit" class="like-btn liked">❤️ {{ post.likes }}</button>
                         </form>
+                        {% else %}
+                        <form method="POST" action="/like/{{ post.id }}" class="like-form">
+                            <button type="submit" class="like-btn">❤️ {{ post.likes }}</button>
+                        </form>
+                        {% endif %}
                     {% else %}
-                        <span class="like-button">🤍</span>
+                        <span class="like-btn">❤️ {{ post.likes }}</span>
                     {% endif %}
-                    <span class="like-count">{{ post.likes }} {{ 'лайк' if post.likes == 1 else 'лайков' }}</span>
                 </div>
-
+                
+                <!-- Комментарии -->
+                <div class="comments-section">
+                    {% if post.comments_preview %}
+                        {% for comment in post.comments_preview %}
+                        <div class="comment">
+                            <div class="comment-header">
+                                {% if comment.author_avatar %}
+                                <img src="{{ comment.author_avatar }}" alt="Avatar" class="comment-avatar">
+                                {% else %}
+                                <div class="comment-avatar-placeholder">
+                                    {{ comment.author[0]|upper }}
+                                </div>
+                                {% endif %}
+                                <div class="comment-author">
+                                    <a href="/profile/{{ comment.author }}" class="profile-link">{{ comment.author }}</a>
+                                </div>
+                                <div class="comment-date">{{ comment.date }}</div>
+                            </div>
+                            <div class="comment-text">{{ comment.content }}</div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <!-- Форма добавления комментария -->
+                    {% if username %}
+                    <form method="POST" action="/comment/{{ post.id }}" style="margin-top: 10px; display: flex; gap: 8px;">
+                        <input type="text" name="content" placeholder="Написать комментарий..." class="comment-input" style="flex: 1;" required>
+                        <button type="submit" class="comment-submit" style="width: auto; padding: 8px 16px; background-color: #1877f2; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 14px; white-space: nowrap;">Отправить</button>
+                    </form>
+                    {% endif %}
+                </div>
+                
                 <!-- Кнопка удаления (только для своих постов) -->
                 {% if username == post.author %}
                 <form method="POST" action="/delete_post/{{ post.id }}" class="delete-form">

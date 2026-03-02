@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Админ-панель - PIZDA MEDIA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f0f2f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1877f2;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #1877f2;
+            padding-bottom: 5px;
+        }
+        .user-bar {
+            text-align: right;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .user-bar a {
+            color: #1877f2;
+            text-decoration: none;
+            margin-left: 10px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1877f2;
+        }
+        .stat-label {
+            color: #65676b;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th {
+            background-color: #1877f2;
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .role-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .role-admin {
+            background-color: #ff4444;
+            color: white;
+        }
+        .role-user {
+            background-color: #00C851;
+            color: white;
+        }
+        select, button {
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        button {
+            background-color: #1877f2;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #166fe5;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #1877f2;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← На главную</a>
+        
+        <div class="user-bar">
+            <span>Привет, <strong>{{ username }}</strong> (Админ)!</span>
+            <a href="/logout">Выйти</a>
+        </div>
+        
+        <h1>👑 Админ-панель</h1>
+        
+        <h2>📊 Статистика</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.total_users }}</div>
+                <div class="stat-label">пользователей</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.total_posts }}</div>
+                <div class="stat-label">постов</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.total_comments }}</div>
+                <div class="stat-label">комментариев</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.total_likes }}</div>
+                <div class="stat-label">лайков</div>
+            </div>
+        </div>
+        
+        <h2>👥 Пользователи</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Имя</th>
+                    <th>Роль</th>
+                    <th>Дата регистрации</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>
+                        <span class="role-badge {% if user.role == 'admin' %}role-admin{% else %}role-user{% endif %}">
+                            {{ user.role }}
+                        </span>
+                    </td>
+                    <td>{{ user.created_at[:10] if user.created_at else 'Неизвестно' }}</td>
+                    <td>
+                        {% if user.username != username and user.username != 'dscod' %}
+                        <form method="POST" action="/admin/set_role" style="display: inline;">
+                            <input type="hidden" name="target_user" value="{{ user.username }}">
+                            <select name="new_role">
+                                <option value="user" {% if user.role == 'user' %}selected{% endif %}>User</option>
+                                <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                            </select>
+                            <button type="submit">Изменить</button>
+                        </form>
+                        {% elif user.username == 'dscod' %}
+                        <span style="color: #999;">Супер-админ</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
