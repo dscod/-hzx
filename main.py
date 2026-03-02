@@ -22,11 +22,51 @@ templates = Jinja2Templates(directory="templates")
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     username = request.session.get("username")
-    posts = database.get_all_posts()
+    posts = database.get_all_posts_with_likes(username)
     return templates.TemplateResponse(
         "index.html", 
         {"request": request, "posts": posts, "username": username}
     )
+
+@app.get("/user/{username}", response_class=HTMLResponse)
+async def user_profile(request: Request, username: str):
+    current_user = request.session.get("username")
+    posts = database.get_user_posts(username)
+    return templates.TemplateResponse(
+        "profile.html",
+        {"request": request, "posts": posts, "profile_username": username, "username": current_user}
+    )
+
+@app.post("/like/{post_id}")
+async def like_post(request: Request, post_id: int):
+    username = request.session.get("username")
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
+    
+    user = database.get_user(username)
+    if user:
+        database.add_like(user['id'], post_id)
+    
+    # Возвращаемся туда, откуда пришли
+    referer = request.headers.get("referer")
+    if referer:
+        return RedirectResponse(url=referer, status_code=303)
+    return RedirectResponse(url="/", status_code=303)
+
+@app.post("/unlike/{post_id}")
+async def unlike_post(request: Request, post_id: int):
+    username = request.session.get("username")
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
+    
+    user = database.get_user(username)
+    if user:
+        database.remove_like(user['id'], post_id)
+    
+    referer = request.headers.get("referer")
+    if referer:
+        return RedirectResponse(url=referer, status_code=303)
+    return RedirectResponse(url="/", status_code=303)
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):

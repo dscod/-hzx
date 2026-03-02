@@ -144,11 +144,45 @@
         .welcome-message a:hover {
             text-decoration: underline;
         }
+        .like-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+        .like-button {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+            width: auto;
+        }
+        .like-button.liked {
+            color: #e91e63;
+        }
+        .like-button:not(.liked) {
+            color: #999;
+        }
+        .like-count {
+            color: #65676b;
+            font-size: 14px;
+        }
+        .author a {
+            color: #1877f2;
+            text-decoration: none;
+        }
+        .author a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Моя Соцсеть</h1>
+        <h1>PIZDA MEDIA</h1>
         
         <!-- Блок с пользователем -->
         <div class="user-bar">
@@ -198,6 +232,51 @@
                 
                 <div class="post-text">{{ post.text }}</div>
                 
+                <!-- Кнопка удаления (только для своих постов) -->
+                {% if username == post.author %}
+                <form method="POST" action="/delete_post/{{ post.id }}" class="delete-form">
+                    <button type="submit" class="delete-btn" onclick="return confirm('Точно удалить этот пост?')">🗑️ Удалить</button>
+                </form>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="welcome-message">
+                😢 Пока нет постов. Будь первым!
+            </div>
+        {% endif %}
+        <!-- Список постов -->
+        <h2>📰 Лента</h2>
+
+        {% if posts %}
+            {% for post in posts %}
+            <div class="post">
+                <div class="author">
+                    <a href="/user/{{ post.author }}">{{ post.author }}</a>
+                </div>
+                <div class="date">{{ post.date }}</div>
+        
+                {% if post.image_url %}
+                <div class="post-image">
+                    <img src="{{ post.image_url }}" alt="Изображение к посту">
+                </div>
+                {% endif %}
+        
+                <div class="post-text">{{ post.text }}</div>
+        
+                <div class="like-section">
+                    {% if username %}
+                        <form method="POST" action="/{% if post.user_liked %}un{% endif %}like/{{ post.id }}" style="margin: 0;">
+                            <button type="submit" class="like-button {% if post.user_liked %}liked{% endif %}">
+                                {% if post.user_liked %}❤️{% else %}🤍{% endif %}
+                            </button>
+                        </form>
+                    {% else %}
+                        <span class="like-button">🤍</span>
+                    {% endif %}
+                    <span class="like-count">{{ post.likes }} {{ 'лайк' if post.likes == 1 else 'лайков' }}</span>
+                </div>
+
                 <!-- Кнопка удаления (только для своих постов) -->
                 {% if username == post.author %}
                 <form method="POST" action="/delete_post/{{ post.id }}" class="delete-form">
