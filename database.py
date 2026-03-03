@@ -16,22 +16,20 @@ if not SUPABASE_URL or not SUPABASE_KEY:
     print("❌ ОШИБКА: Не найдены SUPABASE_URL или SUPABASE_KEY в .env файле!")
     exit(1)
 
+# Единые заголовки для всех запросов (Prefer не мешает DELETE)
 HEADERS = {
     "apikey": SUPABASE_KEY,
     "Authorization": f"Bearer {SUPABASE_KEY}",
-    "Content-Type": "application/json",
-    "Prefer": "return=representation"
+    "Content-Type": "application/json"
 }
 
 # ========== СУПЕР-АДМИН (ЗАЩИТА) ==========
-SUPER_ADMIN = "твой_логин"  # 🔥 ЗАМЕНИ НА СВОЙ ЛОГИН!
+SUPER_ADMIN = "dscod"
 
 def format_date(date_str):
     """Форматирует дату в нужный формат"""
     try:
-        # Парсим дату из строки
         if isinstance(date_str, str):
-            # Пробуем разные форматы
             try:
                 post_date = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
             except:
@@ -42,18 +40,13 @@ def format_date(date_str):
         else:
             post_date = date_str
         
-        # Текущая дата
         now = datetime.now(post_date.tzinfo) if post_date.tzinfo else datetime.now()
         today = now.date()
         post_date_only = post_date.date()
         
-        # Разница в днях
         delta = today - post_date_only
-        
-        # Форматируем время
         time_str = post_date.strftime("%H:%M")
         
-        # Определяем формат даты
         if delta.days == 0:
             return f"сегодня в {time_str}"
         elif delta.days == 1:
@@ -71,19 +64,6 @@ def init_database():
 
 def add_user(username, password_hash):
     try:
-        with httpx.Client() as client:
-            response = client.post(
-                f"{SUPABASE_URL}/rest/v1/users",
-                headers=HEADERS,
-                json={"username": username, "password": password_hash}
-            )
-            return response.status_code == 201
-    except Exception as e:
-        print(f"❌ Ошибка добавления пользователя: {e}")
-        return False
-
-def add_user(username, password_hash):
-    try:
         print(f"🔍 add_user: {username}")
         with httpx.Client() as client:
             response = client.post(
@@ -92,14 +72,13 @@ def add_user(username, password_hash):
                 json={"username": username, "password": password_hash}
             )
             print(f"🔍 Response status: {response.status_code}")
-            print(f"🔍 Response body: {response.text}")
             return response.status_code == 201
     except Exception as e:
         print(f"❌ Ошибка добавления пользователя: {e}")
         import traceback
         traceback.print_exc()
         return False
-    
+
 def get_user(username):
     try:
         with httpx.Client() as client:
@@ -137,7 +116,6 @@ def get_all_posts():
     """Получает все посты с информацией об авторе, лайках, комментариях и аватаре"""
     try:
         with httpx.Client() as client:
-            # Получаем посты
             response = client.get(
                 f"{SUPABASE_URL}/rest/v1/posts",
                 headers=HEADERS,
@@ -155,7 +133,6 @@ def get_all_posts():
             posts = []
             
             for post in posts_data:
-                # Получаем данные автора (включая аватар)
                 user_response = client.get(
                     f"{SUPABASE_URL}/rest/v1/users",
                     headers=HEADERS,
@@ -169,7 +146,6 @@ def get_all_posts():
                     username = user_data['username']
                     avatar_url = user_data.get('avatar_url')
                 
-                # Получаем количество лайков
                 likes_response = client.get(
                     f"{SUPABASE_URL}/rest/v1/likes",
                     headers=HEADERS,
@@ -177,7 +153,6 @@ def get_all_posts():
                 )
                 likes_count = len(likes_response.json()) if likes_response.status_code == 200 else 0
                 
-                # Получаем комментарии
                 comments_response = client.get(
                     f"{SUPABASE_URL}/rest/v1/comments",
                     headers=HEADERS,
@@ -192,7 +167,6 @@ def get_all_posts():
                 comments_preview = []
                 if comments_response.status_code == 200:
                     for comment in comments_response.json():
-                        # Получаем автора комментария
                         comment_user = client.get(
                             f"{SUPABASE_URL}/rest/v1/users",
                             headers=HEADERS,
@@ -205,7 +179,6 @@ def get_all_posts():
                             comment_username = comment_user_data['username']
                             comment_avatar = comment_user_data.get('avatar_url')
                         
-                        # Форматируем дату комментария
                         comment_date = format_date(comment['created_at'])
                         
                         comments_preview.append({
@@ -216,7 +189,6 @@ def get_all_posts():
                             'date': comment_date
                         })
                 
-                # Форматируем дату поста
                 post_date = format_date(post['created_at'])
                 
                 posts.append({
@@ -237,17 +209,53 @@ def get_all_posts():
         traceback.print_exc()
         return []
 
-def delete_post(post_id, user_id):
+def delete_post(post_id, user_id, is_admin=False):
+    """Удаляет пост. Если is_admin=True - может удалять любые посты"""
     try:
+        print(f"🔍 Попытка удалить пост {post_id} пользователем {user_id} (админ: {is_admin})")
+        
         with httpx.Client() as client:
+            # Проверяем существование поста
+            check_response = client.get(
+                f"{SUPABASE_URL}/rest/v1/posts",
+                headers=HEADERS,
+                params={"id": f"eq.{post_id}"}
+            )
+            
+            post_data = check_response.json()
+            if not post_data:
+                print(f"❌ Пост {post_id} не найден")
+                return False
+            
+            # Если не админ - проверяем права
+            if not is_admin:
+                post_author_id = post_data[0]['user_id']
+                if post_author_id != user_id:
+                    print(f"❌ Нет прав на удаление чужого поста")
+                    return False
+            
+            # Удаляем пост
             response = client.delete(
                 f"{SUPABASE_URL}/rest/v1/posts",
                 headers=HEADERS,
-                params={"id": f"eq.{post_id}", "user_id": f"eq.{user_id}"}
+                params={"id": f"eq.{post_id}"}
             )
-            return response.status_code == 204
+            
+            print(f"🔍 Статус удаления: {response.status_code}")
+            
+            # Проверяем результат
+            check_after = client.get(
+                f"{SUPABASE_URL}/rest/v1/posts",
+                headers=HEADERS,
+                params={"id": f"eq.{post_id}"}
+            )
+            
+            return len(check_after.json()) == 0
+            
     except Exception as e:
         print(f"❌ Ошибка удаления поста: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 def get_post_author(post_id):
@@ -268,7 +276,6 @@ def get_post_author(post_id):
 # ========== ЛАЙКИ ==========
 
 def like_post(user_id, post_id):
-    """Добавляет лайк к посту"""
     try:
         with httpx.Client() as client:
             response = client.post(
@@ -282,7 +289,6 @@ def like_post(user_id, post_id):
         return False
 
 def unlike_post(user_id, post_id):
-    """Убирает лайк с поста"""
     try:
         with httpx.Client() as client:
             response = client.delete(
@@ -295,24 +301,7 @@ def unlike_post(user_id, post_id):
         print(f"❌ Ошибка удаления лайка: {e}")
         return False
 
-def get_likes_count(post_id):
-    """Получает количество лайков у поста"""
-    try:
-        with httpx.Client() as client:
-            response = client.get(
-                f"{SUPABASE_URL}/rest/v1/likes",
-                headers=HEADERS,
-                params={"post_id": f"eq.{post_id}", "select": "id"}
-            )
-            if response.status_code == 200:
-                return len(response.json())
-        return 0
-    except Exception as e:
-        print(f"❌ Ошибка получения лайков: {e}")
-        return 0
-
 def check_user_like(user_id, post_id):
-    """Проверяет, лайкнул ли пользователь пост"""
     try:
         with httpx.Client() as client:
             response = client.get(
@@ -328,7 +317,6 @@ def check_user_like(user_id, post_id):
 # ========== КОММЕНТАРИИ ==========
 
 def add_comment(user_id, post_id, content):
-    """Добавляет комментарий к посту"""
     try:
         with httpx.Client() as client:
             response = client.post(
@@ -342,7 +330,6 @@ def add_comment(user_id, post_id, content):
         return False
 
 def get_comments(post_id):
-    """Получает все комментарии к посту"""
     try:
         with httpx.Client() as client:
             response = client.get(
@@ -362,7 +349,6 @@ def get_comments(post_id):
             comments = []
             
             for comment in comments_data:
-                # Получаем имя автора комментария
                 user_response = client.get(
                     f"{SUPABASE_URL}/rest/v1/users",
                     headers=HEADERS,
@@ -376,7 +362,6 @@ def get_comments(post_id):
                     username = user_data['username']
                     avatar_url = user_data.get('avatar_url')
                 
-                # Форматируем дату комментария
                 comment_date = format_date(comment['created_at'])
                 
                 comments.append({
@@ -393,7 +378,6 @@ def get_comments(post_id):
         return []
 
 def delete_comment(comment_id, user_id):
-    """Удаляет комментарий"""
     try:
         with httpx.Client() as client:
             response = client.delete(
@@ -409,7 +393,6 @@ def delete_comment(comment_id, user_id):
 # ========== АВАТАРКИ ==========
 
 def update_avatar(user_id, avatar_url):
-    """Обновляет аватар пользователя"""
     try:
         with httpx.Client() as client:
             response = client.patch(
@@ -423,24 +406,7 @@ def update_avatar(user_id, avatar_url):
         print(f"❌ Ошибка обновления аватара: {e}")
         return False
 
-def get_user_with_avatar(user_id):
-    """Получает данные пользователя включая аватар"""
-    try:
-        with httpx.Client() as client:
-            response = client.get(
-                f"{SUPABASE_URL}/rest/v1/users",
-                headers=HEADERS,
-                params={"id": f"eq.{user_id}", "select": "id,username,avatar_url"}
-            )
-            if response.status_code == 200 and response.json():
-                return response.json()[0]
-        return None
-    except Exception as e:
-        print(f"❌ Ошибка получения пользователя: {e}")
-        return None
-
 def get_user_avatar(username):
-    """Получает URL аватара по имени пользователя"""
     try:
         with httpx.Client() as client:
             response = client.get(
@@ -455,10 +421,322 @@ def get_user_avatar(username):
         print(f"❌ Ошибка получения аватара: {e}")
         return None
 
+def get_user_by_id(user_id):
+    try:
+        with httpx.Client() as client:
+            response = client.get(
+                f"{SUPABASE_URL}/rest/v1/users",
+                headers=HEADERS,
+                params={"id": f"eq.{user_id}", "select": "username,avatar_url"}
+            )
+            if response.status_code == 200 and response.json():
+                return response.json()[0]
+        return None
+    except Exception as e:
+        print(f"❌ Ошибка получения пользователя по ID: {e}")
+        return None
+
+# ========== ЧАТЫ И СООБЩЕНИЯ ==========
+
+def get_or_create_private_chat(user1_id, user2_id):
+    try:
+        print(f"🔍 get_or_create_private_chat: {user1_id} - {user2_id}")
+        
+        with httpx.Client() as client:
+            response = client.get(
+                f"{SUPABASE_URL}/rest/v1/chat_members",
+                headers=HEADERS,
+                params={"user_id": f"eq.{user1_id}", "select": "chat_id"}
+            )
+            
+            if response.status_code != 200:
+                print(f"❌ Ошибка получения чатов: {response.status_code}")
+                return None
+            
+            chat_ids = [item['chat_id'] for item in response.json()]
+            
+            for chat_id in chat_ids:
+                members_response = client.get(
+                    f"{SUPABASE_URL}/rest/v1/chat_members",
+                    headers=HEADERS,
+                    params={"chat_id": f"eq.{chat_id}", "user_id": f"eq.{user2_id}"}
+                )
+                
+                if members_response.status_code == 200 and members_response.json():
+                    print(f"🔍 Найден существующий чат: {chat_id}")
+                    return chat_id
+            
+            return create_private_chat(user1_id, user2_id)
+            
+    except Exception as e:
+        print(f"❌ Ошибка получения/создания чата: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+def create_private_chat(user1_id, user2_id):
+    try:
+        print(f"🔍 create_private_chat: {user1_id} - {user2_id}")
+        
+        with httpx.Client() as client:
+            chat_response = client.post(
+                f"{SUPABASE_URL}/rest/v1/chats",
+                headers=HEADERS,
+                json={"name": None}
+            )
+            
+            if chat_response.status_code != 201:
+                print(f"❌ Ошибка создания чата: {chat_response.text}")
+                return None
+            
+            chat_id = chat_response.json()[0]['id']
+            
+            client.post(
+                f"{SUPABASE_URL}/rest/v1/chat_members",
+                headers=HEADERS,
+                json={"chat_id": chat_id, "user_id": user1_id}
+            )
+            
+            client.post(
+                f"{SUPABASE_URL}/rest/v1/chat_members",
+                headers=HEADERS,
+                json={"chat_id": chat_id, "user_id": user2_id}
+            )
+            
+            return chat_id
+            
+    except Exception as e:
+        print(f"❌ Ошибка создания личного чата: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+def send_message(chat_id, user_id, content):
+    try:
+        with httpx.Client() as client:
+            response = client.post(
+                f"{SUPABASE_URL}/rest/v1/messages",
+                headers=HEADERS,
+                json={"chat_id": chat_id, "user_id": user_id, "content": content}
+            )
+            return response.status_code == 201
+    except Exception as e:
+        print(f"❌ Ошибка отправки сообщения: {e}")
+        return False
+
+def get_chat_messages(chat_id, limit=50):
+    try:
+        with httpx.Client() as client:
+            response = client.get(
+                f"{SUPABASE_URL}/rest/v1/messages",
+                headers=HEADERS,
+                params={
+                    "chat_id": f"eq.{chat_id}",
+                    "order": "created_at.desc",
+                    "limit": limit,
+                    "select": "id,content,created_at,user_id"
+                }
+            )
+            
+            if response.status_code != 200:
+                return []
+            
+            messages_data = response.json()
+            messages = []
+            
+            for msg in messages_data:
+                user_response = client.get(
+                    f"{SUPABASE_URL}/rest/v1/users",
+                    headers=HEADERS,
+                    params={"id": f"eq.{msg['user_id']}", "select": "username,avatar_url"}
+                )
+                
+                username = "Неизвестный"
+                avatar_url = None
+                if user_response.status_code == 200 and user_response.json():
+                    user_data = user_response.json()[0]
+                    username = user_data['username']
+                    avatar_url = user_data.get('avatar_url')
+                
+                messages.append({
+                    'id': msg['id'],
+                    'content': msg['content'],
+                    'author': username,
+                    'author_avatar': avatar_url,
+                    'date': format_date(msg['created_at']),
+                    'user_id': msg['user_id']
+                })
+            
+            return list(reversed(messages))
+            
+    except Exception as e:
+        print(f"❌ Ошибка получения сообщений: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
+def get_user_chats(user_id):
+    try:
+        print(f"🔍 get_user_chats для user_id: {user_id}")
+        
+        with httpx.Client() as client:
+            members_response = client.get(
+                f"{SUPABASE_URL}/rest/v1/chat_members",
+                headers=HEADERS,
+                params={"user_id": f"eq.{user_id}", "select": "chat_id"}
+            )
+            
+            if members_response.status_code != 200:
+                return []
+            
+            chat_ids = [item['chat_id'] for item in members_response.json()]
+            
+            if not chat_ids:
+                return []
+            
+            chats = []
+            for chat_id in chat_ids:
+                try:
+                    other_members = client.get(
+                        f"{SUPABASE_URL}/rest/v1/chat_members",
+                        headers=HEADERS,
+                        params={
+                            "chat_id": f"eq.{chat_id}",
+                            "user_id": f"neq.{user_id}",
+                            "select": "user_id"
+                        }
+                    )
+                    
+                    if other_members.status_code != 200 or not other_members.json():
+                        continue
+                    
+                    other_user_id = other_members.json()[0]['user_id']
+                    
+                    user_response = client.get(
+                        f"{SUPABASE_URL}/rest/v1/users",
+                        headers=HEADERS,
+                        params={"id": f"eq.{other_user_id}", "select": "username,avatar_url"}
+                    )
+                    
+                    if user_response.status_code != 200 or not user_response.json():
+                        continue
+                    
+                    other_user = user_response.json()[0]
+                    
+                    messages_response = client.get(
+                        f"{SUPABASE_URL}/rest/v1/messages",
+                        headers=HEADERS,
+                        params={
+                            "chat_id": f"eq.{chat_id}",
+                            "order": "created_at.desc",
+                            "limit": 1
+                        }
+                    )
+                    
+                    last_message = None
+                    if messages_response.status_code == 200 and messages_response.json():
+                        last_msg = messages_response.json()[0]
+                        last_message = {
+                            'content': last_msg['content'],
+                            'date': format_date(last_msg['created_at'])
+                        }
+                    
+                    chats.append({
+                        'id': chat_id,
+                        'other_user': other_user['username'],
+                        'other_avatar': other_user.get('avatar_url'),
+                        'last_message': last_message
+                    })
+                except Exception as e:
+                    print(f"⚠️ Ошибка обработки чата {chat_id}: {e}")
+                    continue
+            
+            return chats
+            
+    except Exception as e:
+        print(f"⚠️ Ошибка получения чатов: {e}")
+        return []
+
+# ========== ПОДПИСКИ ==========
+
+def follow_user(follower_id, following_id):
+    if follower_id == following_id:
+        print("❌ Нельзя подписаться на самого себя")
+        return False
+    
+    try:
+        with httpx.Client() as client:
+            response = client.post(
+                f"{SUPABASE_URL}/rest/v1/follows",
+                headers=HEADERS,
+                json={"follower_id": follower_id, "following_id": following_id}
+            )
+            return response.status_code == 201
+    except Exception as e:
+        print(f"❌ Ошибка подписки: {e}")
+        return False
+
+def unfollow_user(follower_id, following_id):
+    try:
+        with httpx.Client() as client:
+            response = client.delete(
+                f"{SUPABASE_URL}/rest/v1/follows",
+                headers=HEADERS,
+                params={
+                    "follower_id": f"eq.{follower_id}",
+                    "following_id": f"eq.{following_id}"
+                }
+            )
+            return response.status_code == 204
+    except Exception as e:
+        print(f"❌ Ошибка отписки: {e}")
+        return False
+
+def is_following(follower_id, following_id):
+    try:
+        with httpx.Client() as client:
+            response = client.get(
+                f"{SUPABASE_URL}/rest/v1/follows",
+                headers=HEADERS,
+                params={
+                    "follower_id": f"eq.{follower_id}",
+                    "following_id": f"eq.{following_id}"
+                }
+            )
+            return len(response.json()) > 0
+    except Exception as e:
+        print(f"❌ Ошибка проверки подписки: {e}")
+        return False
+
+def get_followers_count(user_id):
+    try:
+        with httpx.Client() as client:
+            response = client.get(
+                f"{SUPABASE_URL}/rest/v1/follows",
+                headers=HEADERS,
+                params={"following_id": f"eq.{user_id}", "select": "id"}
+            )
+            return len(response.json()) if response.status_code == 200 else 0
+    except Exception as e:
+        print(f"❌ Ошибка получения подписчиков: {e}")
+        return 0
+
+def get_following_count(user_id):
+    try:
+        with httpx.Client() as client:
+            response = client.get(
+                f"{SUPABASE_URL}/rest/v1/follows",
+                headers=HEADERS,
+                params={"follower_id": f"eq.{user_id}", "select": "id"}
+            )
+            return len(response.json()) if response.status_code == 200 else 0
+    except Exception as e:
+        print(f"❌ Ошибка получения подписок: {e}")
+        return 0
+
 # ========== АДМИНИСТРИРОВАНИЕ ==========
 
 def get_user_role(username):
-    """Получает роль пользователя"""
     try:
         with httpx.Client() as client:
             response = client.get(
@@ -474,19 +752,13 @@ def get_user_role(username):
         return 'user'
 
 def is_admin(username):
-    """Проверяет, является ли пользователь админом"""
     if not username:
         return False
-    
-    # Супер-админ всегда админ независимо от роли в базе
-    if username == "dscod":
+    if username == SUPER_ADMIN:
         return True
-    
-    # Для остальных проверяем роль в базе
     return get_user_role(username) == 'admin'
 
 def get_all_users():
-    """Получает список всех пользователей (только для админов)"""
     try:
         with httpx.Client() as client:
             response = client.get(
@@ -502,7 +774,6 @@ def get_all_users():
         return []
 
 def admin_delete_post(post_id):
-    """Удаляет любой пост (только для админов)"""
     try:
         with httpx.Client() as client:
             response = client.delete(
@@ -516,15 +787,12 @@ def admin_delete_post(post_id):
         return False
 
 def set_user_role(username, new_role):
-    """Изменяет роль пользователя (только для админов)"""
     try:
-        # Запрещаем менять роль супер-админа
         if username == SUPER_ADMIN:
             print("❌ Нельзя изменить роль супер-админа")
             return False
         
         with httpx.Client() as client:
-            # Сначала получаем id пользователя
             user_response = client.get(
                 f"{SUPABASE_URL}/rest/v1/users",
                 headers=HEADERS,
@@ -535,7 +803,6 @@ def set_user_role(username, new_role):
             
             user_id = user_response.json()[0]['id']
             
-            # Обновляем роль
             response = client.patch(
                 f"{SUPABASE_URL}/rest/v1/users",
                 headers=HEADERS,
@@ -548,12 +815,10 @@ def set_user_role(username, new_role):
         return False
 
 def get_site_stats():
-    """Получает статистику сайта (только для админов)"""
     try:
         with httpx.Client() as client:
             stats = {}
             
-            # Количество пользователей
             users_response = client.get(
                 f"{SUPABASE_URL}/rest/v1/users",
                 headers=HEADERS,
@@ -561,7 +826,6 @@ def get_site_stats():
             )
             stats['total_users'] = len(users_response.json()) if users_response.status_code == 200 else 0
             
-            # Количество постов
             posts_response = client.get(
                 f"{SUPABASE_URL}/rest/v1/posts",
                 headers=HEADERS,
@@ -569,7 +833,6 @@ def get_site_stats():
             )
             stats['total_posts'] = len(posts_response.json()) if posts_response.status_code == 200 else 0
             
-            # Количество комментариев
             comments_response = client.get(
                 f"{SUPABASE_URL}/rest/v1/comments",
                 headers=HEADERS,
@@ -577,7 +840,6 @@ def get_site_stats():
             )
             stats['total_comments'] = len(comments_response.json()) if comments_response.status_code == 200 else 0
             
-            # Количество лайков
             likes_response = client.get(
                 f"{SUPABASE_URL}/rest/v1/likes",
                 headers=HEADERS,

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Чаты - PIZDA MEDIA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f0f2f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1877f2;
+            text-align: center;
+        }
+        .user-bar {
+            text-align: right;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .user-bar a {
+            color: #1877f2;
+            text-decoration: none;
+            margin-left: 10px;
+        }
+        .chat-list {
+            list-style: none;
+            padding: 0;
+        }
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .chat-item:hover {
+            background-color: #f5f5f5;
+        }
+        .chat-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+            object-fit: cover;
+        }
+        .chat-info {
+            flex: 1;
+        }
+        .chat-name {
+            font-weight: bold;
+            color: #1877f2;
+            margin-bottom: 5px;
+        }
+        .chat-last-message {
+            color: #65676b;
+            font-size: 14px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #1877f2;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← На главную</a>
+        
+        <div class="user-bar">
+            {% if username %}
+                <span>Привет, <strong>{{ username }}</strong>!</span>
+                <a href="/logout">Выйти</a>
+            {% else %}
+                <a href="/login">Вход</a> | 
+                <a href="/register">Регистрация</a>
+            {% endif %}
+        </div>
+        
+        <h1>💬 Мои чаты</h1>
+        
+        <div class="chat-list">
+            {% if chats %}
+                {% for chat in chats %}
+                <div class="chat-item" onclick="window.location='/chat/{{ chat.id }}'">
+                    {% if chat.other_avatar %}
+                    <img src="{{ chat.other_avatar }}" alt="Avatar" class="chat-avatar">
+                    {% else %}
+                    <div class="chat-avatar" style="background-color: #ddd; display: flex; align-items: center; justify-content: center; color: #666;">
+                        {{ chat.other_user[0]|upper }}
+                    </div>
+                    {% endif %}
+                    <div class="chat-info">
+                        <div class="chat-name">{{ chat.other_user }}</div>
+                        {% if chat.last_message %}
+                        <div class="chat-last-message">
+                            {{ chat.last_message.content }} · {{ chat.last_message.date }}
+                        </div>
+                        {% else %}
+                        <div class="chat-last-message">Нет сообщений</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; color: #65676b;">У вас пока нет чатов. Начните общение!</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

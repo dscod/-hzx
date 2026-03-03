@@ -296,13 +296,13 @@
     <div class="container">
         <h1>PIZDA MEDIA</h1>
         
-        <!-- Блок с пользователем -->
         <div class="user-bar">
             {% if username %}
                 <span>Привет, <strong>{{ username }}</strong>!</span>
-                {% if username == 'dscod' or database.is_admin(username) %}  <!-- Замени на свой логин -->
+                {% if username == 'dscod' %}
                 <a href="/admin">Админка</a>
                 {% endif %}
+                <a href="/chats">Чаты</a>
                 <a href="/logout">Выйти</a>
             {% else %}
                 <a href="/login">Вход</a> | 
@@ -358,6 +358,12 @@
                     <img src="{{ post.image_url }}" alt="Изображение к посту">
                 </div>
                 {% endif %}
+
+                {% if post.image_url %}
+                <div class="post-image">
+                    <img src="{{ post.image_url }}" alt="Изображение к посту" onerror="this.style.display='none'">
+                </div>
+                {% endif %}
                 
                 <div class="post-text">{{ post.text }}</div>
                 
@@ -411,11 +417,14 @@
                 </div>
                 
                 <!-- Кнопка удаления (только для своих постов) -->
-                {% if username == post.author %}
-                <form method="POST" action="/delete_post/{{ post.id }}" class="delete-form">
-                    <button type="submit" class="delete-btn" onclick="return confirm('Точно удалить этот пост?')">🗑️ Удалить</button>
-                </form>
+                {% if username %}
+                    {% if username == post.author or (is_admin and username != post.author) %}
+                    <form method="POST" action="/delete_post/{{ post.id }}" class="delete-form">
+                        <button type="submit" class="delete-btn" onclick="return confirm('Точно удалить этот пост?')">🗑️ Удалить</button>
+                    </form>
+                    {% endif %}
                 {% endif %}
+
             </div>
             {% endfor %}
         {% else %}

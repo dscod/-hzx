@@ -9,9 +9,15 @@ import os
 import shutil
 import uuid
 from typing import Optional
+from socket_manager import get_socket_app
+import socket_manager
 
 app = FastAPI(title="PIZDA MEDIA")
 app.add_middleware(SessionMiddleware, secret_key="super-secret-key-123", session_cookie="session")
+
+# Монтируем Socket.IO приложение
+socket_app = get_socket_app()
+app.mount("/socket.io", socket_app)
 
 # Подключаем статические файлы (для картинок и аватаров)
 os.makedirs("static", exist_ok=True)
@@ -26,17 +32,30 @@ async def index(request: Request):
     username = request.session.get("username")
     posts = database.get_all_posts()
     
-    # Добавляем информацию о том, лайкнул ли пользователь каждый пост
+    # Добавляем информацию о лайках и проверяем, админ ли пользователь
+    is_admin_user = False
     if username:
         user = database.get_user(username)
         if user:
             for post in posts:
                 post['user_liked'] = database.check_user_like(user['id'], post['id'])
+            is_admin_user = database.is_admin(username)  # Проверяем, админ ли
     
-    return templates.TemplateResponse(
+    response = templates.TemplateResponse(
         "index.html", 
-        {"request": request, "posts": posts, "username": username}
+        {
+            "request": request, 
+            "posts": posts, 
+            "username": username,
+            "is_admin": is_admin_user  # ← Передаём флаг в шаблон
+        }
     )
+    
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    
+    return response
 
 # ===== РЕГИСТРАЦИЯ =====
 @app.get("/register", response_class=HTMLResponse)
@@ -152,12 +171,19 @@ async def delete_post(request: Request, post_id: int):
     if not user:
         return RedirectResponse(url="/login", status_code=303)
     
-    # Проверяем, что пост принадлежит пользователю
-    author_id = database.get_post_author(post_id)
-    if author_id != user['id']:
-        return RedirectResponse(url="/", status_code=303)
+    # Проверяем, является ли пользователь админом
+    is_admin_user = database.is_admin(username)
     
-    database.delete_post(post_id, user['id'])
+    # Если не админ, проверяем, что пост принадлежит пользователю
+    if not is_admin_user:
+        author_id = database.get_post_author(post_id)
+        if author_id != user['id']:
+            return RedirectResponse(url="/", status_code=303)
+    
+    # Передаём флаг is_admin_user в функцию удаления
+    result = database.delete_post(post_id, user['id'], is_admin_user)
+    print(f"Результат удаления: {result}")
+    
     return RedirectResponse(url="/", status_code=303)
 
 # ===== МАРШРУТЫ ДЛЯ ЛАЙКОВ =====
@@ -245,12 +271,28 @@ async def upload_avatar(
 async def profile(request: Request, username: str):
     current_user = request.session.get("username")
     
+    # Получаем данные пользователя
+    user = database.get_user(username)
+    if not user:
+        return RedirectResponse(url="/", status_code=303)
+    
     # Получаем аватар пользователя
     profile_avatar = database.get_user_avatar(username)
     
     # Получаем все посты и фильтруем по автору
     all_posts = database.get_all_posts()
     user_posts = [post for post in all_posts if post['author'] == username]
+    
+    # Получаем статистику подписок
+    followers_count = database.get_followers_count(user['id'])
+    following_count = database.get_following_count(user['id'])
+    
+    # Проверяем, подписан ли текущий пользователь
+    is_following = False
+    if current_user and current_user != username:
+        current_user_data = database.get_user(current_user)
+        if current_user_data:
+            is_following = database.is_following(current_user_data['id'], user['id'])
     
     return templates.TemplateResponse(
         "profile.html",
@@ -259,7 +301,10 @@ async def profile(request: Request, username: str):
             "username": current_user,
             "profile_user": username,
             "profile_avatar": profile_avatar,
-            "posts": user_posts
+            "posts": user_posts,
+            "followers_count": followers_count,
+            "following_count": following_count,
+            "is_following": is_following
         }
     )
 
@@ -313,3 +358,158 @@ async def admin_set_role(
         database.set_user_role(target_user, new_role)
     
     return RedirectResponse(url="/admin", status_code=303)
+
+# ===== МЕССЕНДЖЕР =====
+
+@app.get("/chats", response_class=HTMLResponse)
+async def chats_page(request: Request):
+    username = request.session.get("username")
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
+    
+    user = database.get_user(username)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+    
+    # Пока возвращаем пустой список, чтобы проверить остальное
+    chats = []
+    
+    return templates.TemplateResponse(
+        "chats.html",
+        {
+            "request": request,
+            "username": username,
+            "chats": chats
+        }
+    )
+
+@app.get("/chat/{chat_id}", response_class=HTMLResponse)
+async def chat_page(request: Request, chat_id: int):
+    username = request.session.get("username")
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
+    
+    user = database.get_user(username)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+    
+    messages = database.get_chat_messages(chat_id)
+    
+    # Получаем информацию о другом участнике
+    # (для личных чатов)
+    from database import get_user_chats
+    chats = database.get_user_chats(user['id'])
+    other_user = None
+    other_avatar = None
+    
+    for chat in chats:
+        if chat['id'] == chat_id:
+            other_user = chat['other_user']
+            other_avatar = chat['other_avatar']
+            break
+    
+    return templates.TemplateResponse(
+        "chat.html",
+        {
+            "request": request,
+            "username": username,
+            "user_id": user['id'],
+            "chat_id": chat_id,
+            "messages": messages,
+            "other_user": other_user,
+            "other_avatar": other_avatar
+        }
+    )
+
+@app.get("/start_chat/{other_username}")
+async def start_chat(request: Request, other_username: str):
+    username = request.session.get("username")
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
+    
+    user = database.get_user(username)
+    other = database.get_user(other_username)
+    
+    if not user or not other:
+        return RedirectResponse(url="/", status_code=303)
+    
+    chat_id = database.get_or_create_private_chat(user['id'], other['id'])
+    
+    if chat_id:
+        return RedirectResponse(url=f"/chat/{chat_id}", status_code=303)
+    else:
+        return RedirectResponse(url="/chats", status_code=303)
+    
+# ===== ПОДПИСКИ =====
+
+@app.post("/follow/{username}")
+async def follow_user(request: Request, username: str):
+    current_username = request.session.get("username")
+    if not current_username:
+        return RedirectResponse(url="/login", status_code=303)
+    
+    current_user = database.get_user(current_username)
+    target_user = database.get_user(username)
+    
+    if not current_user or not target_user or current_user['id'] == target_user['id']:
+        return RedirectResponse(url=f"/profile/{username}", status_code=303)
+    
+    database.follow_user(current_user['id'], target_user['id'])
+    return RedirectResponse(url=f"/profile/{username}", status_code=303)
+
+@app.post("/unfollow/{username}")
+async def unfollow_user(request: Request, username: str):
+    current_username = request.session.get("username")
+    if not current_username:
+        return RedirectResponse(url="/login", status_code=303)
+    
+    current_user = database.get_user(current_username)
+    target_user = database.get_user(username)
+    
+    if not current_user or not target_user:
+        return RedirectResponse(url=f"/profile/{username}", status_code=303)
+    
+    database.unfollow_user(current_user['id'], target_user['id'])
+    return RedirectResponse(url=f"/profile/{username}", status_code=303)
+
+@app.get("/followers/{username}", response_class=HTMLResponse)
+async def followers_page(request: Request, username: str):
+    current_user = request.session.get("username")
+    user = database.get_user(username)
+    
+    if not user:
+        return RedirectResponse(url="/", status_code=303)
+    
+    followers = database.get_followers(user['id'])
+    
+    return templates.TemplateResponse(
+        "followers.html",
+        {
+            "request": request,
+            "username": current_user,
+            "profile_user": username,
+            "users": followers,
+            "type": "followers"
+        }
+    )
+
+@app.get("/following/{username}", response_class=HTMLResponse)
+async def following_page(request: Request, username: str):
+    current_user = request.session.get("username")
+    user = database.get_user(username)
+    
+    if not user:
+        return RedirectResponse(url="/", status_code=303)
+    
+    following = database.get_following(user['id'])
+    
+    return templates.TemplateResponse(
+        "followers.html",
+        {
+            "request": request,
+            "username": current_user,
+            "profile_user": username,
+            "users": following,
+            "type": "following"
+        }
+    )

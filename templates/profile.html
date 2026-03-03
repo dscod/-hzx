@@ -186,11 +186,36 @@
             </div>
             
             <div class="profile-username">{{ profile_user }}</div>
+            
             <div class="profile-stats">
+                <div class="stat" onclick="window.location='/followers/{{ profile_user }}'" style="cursor: pointer;">
+                    <div class="stat-value">{{ followers_count }}</div>
+                    <div class="stat-label">подписчиков</div>
+                </div>
+                <div class="stat" onclick="window.location='/following/{{ profile_user }}'" style="cursor: pointer;">
+                    <div class="stat-value">{{ following_count }}</div>
+                    <div class="stat-label">подписок</div>
+                </div>
                 <div class="stat">
                     <div class="stat-value">{{ posts|length }}</div>
                     <div class="stat-label">постов</div>
                 </div>
+            </div>
+            
+            <div class="profile-actions" style="margin-top: 20px;">
+                {% if username and username != profile_user %}
+                    {% if is_following %}
+                    <form method="POST" action="/unfollow/{{ profile_user }}" style="display: inline;">
+                        <button type="submit" style="background-color: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">✅ Отписаться</button>
+                    </form>
+                    {% else %}
+                    <form method="POST" action="/follow/{{ profile_user }}" style="display: inline;">
+                        <button type="submit" style="background-color: #1877f2; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">➕ Подписаться</button>
+                    </form>
+                    {% endif %}
+                    
+                    <a href="/start_chat/{{ profile_user }}" style="background-color: #1877f2; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block; margin-left: 10px;">💬 Написать</a>
+                {% endif %}
             </div>
         </div>
         

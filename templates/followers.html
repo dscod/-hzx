@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% if type == 'followers' %}Подписчики{% else %}Подписки{% endif %} - PIZDA MEDIA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f0f2f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1877f2;
+            text-align: center;
+        }
+        .user-bar {
+            text-align: right;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .user-bar a {
+            color: #1877f2;
+            text-decoration: none;
+            margin-left: 10px;
+        }
+        .users-list {
+            list-style: none;
+            padding: 0;
+        }
+        .user-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .user-item:hover {
+            background-color: #f5f5f5;
+        }
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+            object-fit: cover;
+        }
+        .user-avatar-placeholder {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        .user-info {
+            flex: 1;
+        }
+        .user-name {
+            font-weight: bold;
+            color: #1877f2;
+            margin-bottom: 5px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #1877f2;
+            text-decoration: none;
+        }
+        .empty-message {
+            text-align: center;
+            color: #65676b;
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/profile/{{ profile_user }}" class="back-link">← Назад к профилю</a>
+        
+        <div class="user-bar">
+            {% if username %}
+                <span>Привет, <strong>{{ username }}</strong>!</span>
+                <a href="/logout">Выйти</a>
+            {% else %}
+                <a href="/login">Вход</a> | 
+                <a href="/register">Регистрация</a>
+            {% endif %}
+        </div>
+        
+        <h1>
+            {% if type == 'followers' %}
+                👥 Подписчики {{ profile_user }}
+            {% else %}
+                📋 Подписки {{ profile_user }}
+            {% endif %}
+        </h1>
+        
+        <div class="users-list">
+            {% if users %}
+                {% for user in users %}
+                <div class="user-item" onclick="window.location='/profile/{{ user.username }}'">
+                    {% if user.avatar_url %}
+                    <img src="{{ user.avatar_url }}" alt="Avatar" class="user-avatar">
+                    {% else %}
+                    <div class="user-avatar-placeholder">
+                        {{ user.username[0]|upper }}
+                    </div>
+                    {% endif %}
+                    <div class="user-info">
+                        <div class="user-name">{{ user.username }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-message">
+                    {% if type == 'followers' %}
+                        😢 У пользователя пока нет подписчиков
+                    {% else %}
+                        😢 Пользователь ни на кого не подписан
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

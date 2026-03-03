@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Чат - PIZDA MEDIA</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f0f2f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1877f2;
+            text-align: center;
+        }
+        .user-bar {
+            text-align: right;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .user-bar a {
+            color: #1877f2;
+            text-decoration: none;
+            margin-left: 10px;
+        }
+        .chat-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .chat-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
+        }
+        .chat-name {
+            font-weight: bold;
+            color: #1877f2;
+            font-size: 18px;
+        }
+        .messages-container {
+            height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        .message {
+            max-width: 70%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 18px;
+            position: relative;
+        }
+        .message.own {
+            align-self: flex-end;
+            background-color: #1877f2;
+            color: white;
+        }
+        .message.other {
+            align-self: flex-start;
+            background-color: #e4e6eb;
+            color: black;
+        }
+        .message-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .message-author {
+            font-weight: bold;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        .message-time {
+            font-size: 10px;
+            opacity: 0.7;
+        }
+        .message-content {
+            word-wrap: break-word;
+        }
+        .typing-indicator {
+            color: #65676b;
+            font-size: 12px;
+            margin: 5px 0;
+            min-height: 20px;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+        #message-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        #send-btn {
+            padding: 10px 20px;
+            background-color: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        #send-btn:hover {
+            background-color: #166fe5;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #1877f2;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/chats" class="back-link">← К списку чатов</a>
+        
+        <div class="user-bar">
+            {% if username %}
+                <span>Привет, <strong>{{ username }}</strong>!</span>
+                <a href="/logout">Выйти</a>
+            {% else %}
+                <a href="/login">Вход</a> | 
+                <a href="/register">Регистрация</a>
+            {% endif %}
+        </div>
+        
+        <div class="chat-header">
+            {% if other_avatar %}
+            <img src="{{ other_avatar }}" alt="Avatar" class="chat-avatar">
+            {% else %}
+            <div class="chat-avatar" style="background-color: #ddd; display: flex; align-items: center; justify-content: center;">
+                {{ other_user[0]|upper }}
+            </div>
+            {% endif %}
+            <div class="chat-name">{{ other_user }}</div>
+        </div>
+        
+        <div class="messages-container" id="messages-container">
+            {% for message in messages %}
+            <div class="message {% if message.user_id == user_id %}own{% else %}other{% endif %}">
+                <div class="message-content">{{ message.content }}</div>
+                <div class="message-time">{{ message.date }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="typing-indicator" id="typing-indicator"></div>
+        
+        <div class="input-area">
+            <input type="text" id="message-input" placeholder="Написать сообщение...">
+            <button id="send-btn">Отправить</button>
+        </div>
+    </div>
+
+    <script>
+        const socket = io(window.location.origin);
+        const chatId = {{ chat_id }};
+        const userId = "{{ user_id }}";
+        const otherUser = "{{ other_user }}";
+        
+        // Аутентификация
+        socket.on('connect', function() {
+            console.log('Подключено к серверу');
+            socket.emit('authenticate', { user_id: userId });
+            socket.emit('join_chat', { chat_id: chatId, user_id: userId });
+        });
+        
+        // Подтверждение аутентификации
+        socket.on('authenticated', function(data) {
+            console.log('Аутентификация успешна');
+        });
+        
+        // Новое сообщение
+        socket.on('new_message', function(data) {
+            if (data.chat_id == chatId) {
+                addMessage(data);
+            }
+        });
+        
+        // Кто-то печатает
+        socket.on('user_typing', function(data) {
+            if (data.chat_id == chatId && data.user_id != userId) {
+                const indicator = document.getElementById('typing-indicator');
+                if (data.typing) {
+                    indicator.textContent = `${otherUser} печатает...`;
+                } else {
+                    indicator.textContent = '';
+                }
+            }
+        });
+        
+        // Отправка сообщения
+        document.getElementById('send-btn').onclick = sendMessage;
+        document.getElementById('message-input').onkeypress = function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        };
+        
+        // Отслеживание печатания
+        let typingTimer;
+        document.getElementById('message-input').oninput = function() {
+            socket.emit('typing', {
+                chat_id: chatId,
+                user_id: userId,
+                typing: true
+            });
+            
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(function() {
+                socket.emit('typing', {
+                    chat_id: chatId,
+                    user_id: userId,
+                    typing: false
+                });
+            }, 1000);
+        };
+        
+        function sendMessage() {
+            const input = document.getElementById('message-input');
+            const content = input.value.trim();
+            
+            if (content) {
+                socket.emit('send_message', {
+                    chat_id: chatId,
+                    user_id: userId,
+                    content: content
+                });
+                
+                input.value = '';
+            }
+        }
+        
+        function addMessage(data) {
+            const container = document.getElementById('messages-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${data.user_id == userId ? 'own' : 'other'}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = data.content;
+            
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = data.timestamp || 'только что';
+            
+            messageDiv.appendChild(contentDiv);
+            messageDiv.appendChild(timeDiv);
+            container.appendChild(messageDiv);
+            
+            // Прокрутка вниз
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        // Прокрутка вниз при загрузке
+        window.onload = function() {
+            const container = document.getElementById('messages-container');
+            container.scrollTop = container.scrollHeight;
+        };
+    </script>
+</body>
+</html>
