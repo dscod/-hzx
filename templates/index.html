@@ -3,435 +3,778 @@
 <head>
     <title>PIZDA MEDIA</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background-color: #f0f2f5;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #FFF1E1 0%, #FDF8F2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
         }
+        
+        /* Стеклянные шары на фоне */
+        body::before {
+            content: '';
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(7, 114, 161, 0.15), rgba(7, 114, 161, 0.05));
+            top: -100px;
+            left: -100px;
+            z-index: -1;
+            filter: blur(50px);
+        }
+        
+        body::after {
+            content: '';
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 70% 70%, rgba(255, 189, 115, 0.2), rgba(255, 189, 115, 0.05));
+            bottom: -150px;
+            right: -150px;
+            z-index: -1;
+            filter: blur(60px);
+        }
+        
+        .container {
+            max-width: 680px;
+            width: 100%;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Базовый стеклянный эффект */
+        .glass {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(7, 114, 161, 0.1);
+        }
+        
+        /* Хедер */
+        .header {
+            padding: 24px;
+            margin-bottom: 24px;
+            border-radius: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(7, 114, 161, 0.1);
+        }
+        
         h1 {
-            color: #1877f2;
-            text-align: center;
+            color: #0772A1;
+            font-size: 32px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin-bottom: 16px;
+            text-shadow: 0 4px 12px rgba(7, 114, 161, 0.2);
         }
+        
+        /* Навигация */
         .user-bar {
-            text-align: right;
-            margin-bottom: 20px;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 20px;
+            padding: 12px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
         }
-        .user-bar a {
-            color: #1877f2;
+        
+        .user-bar span {
+            color: #364247;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        .user-bar strong {
+            color: #0772A1;
+            font-weight: 600;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .nav-link {
+            color: #364247;
             text-decoration: none;
-            margin-left: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
-        .user-bar a:hover {
-            text-decoration: underline;
+        
+        .nav-link:hover {
+            background: rgba(7, 114, 161, 0.2);
+            border-color: rgba(7, 114, 161, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(7, 114, 161, 0.15);
         }
+        
+        .nav-link.admin {
+            background: rgba(7, 114, 161, 0.25);
+            border-color: rgba(7, 114, 161, 0.4);
+            color: #0772A1;
+            font-weight: 600;
+        }
+        
+        .nav-link.admin:hover {
+            background: rgba(7, 114, 161, 0.35);
+            border-color: #0772A1;
+        }
+        
+        /* Форма нового поста */
+        .post-form {
+            padding: 28px;
+            margin-bottom: 28px;
+            border-radius: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(7, 114, 161, 0.1);
+        }
+        
+        .post-form h2 {
+            color: #0772A1;
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 2px 8px rgba(7, 114, 161, 0.2);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            color: #364247;
+        }
+        
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: rgba(7, 114, 161, 0.5);
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 4px rgba(7, 114, 161, 0.1);
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        input[type="file"] {
+            width: 100%;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            cursor: pointer;
+            color: #364247;
+        }
+        
+        .small-text {
+            color: #364247;
+            font-size: 13px;
+            margin-top: 8px;
+            display: block;
+            opacity: 0.7;
+        }
+        
+        .btn {
+            background: rgba(7, 114, 161, 0.25);
+            backdrop-filter: blur(4px);
+            color: #0772A1;
+            border: 1px solid rgba(7, 114, 161, 0.3);
+            padding: 16px 28px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: 0 4px 16px rgba(7, 114, 161, 0.15);
+        }
+        
+        .btn:hover {
+            background: rgba(7, 114, 161, 0.35);
+            border-color: #0772A1;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(7, 114, 161, 0.25);
+        }
+        
+        /* Лента */
+        .feed {
+            margin-top: 28px;
+        }
+        
+        .feed h2 {
+            color: #0772A1;
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 2px 8px rgba(7, 114, 161, 0.2);
+        }
+        
+        /* Пост */
         .post {
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            background-color: white;
+            padding: 28px;
+            margin-bottom: 24px;
+            border-radius: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(7, 114, 161, 0.1);
+            transition: all 0.3s ease;
         }
+        
+        .post:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 16px 48px rgba(7, 114, 161, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Шапка поста */
         .post-header {
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
+            gap: 16px;
+            margin-bottom: 20px;
         }
-        .post-author-avatar {
-            width: 40px;
-            height: 40px;
+        
+        .avatar {
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
-            margin-right: 10px;
             object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 12px rgba(7, 114, 161, 0.2);
         }
-        .post-author-avatar-placeholder {
-            width: 40px;
-            height: 40px;
+        
+        .avatar-placeholder {
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
-            background-color: #ddd;
-            margin-right: 10px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(4px);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #666;
-            font-weight: bold;
+            font-weight: 600;
+            font-size: 24px;
+            color: #0772A1;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 12px rgba(7, 114, 161, 0.2);
         }
+        
         .post-author-info {
             flex: 1;
         }
-        .author {
-            font-weight: bold;
-            color: #1877f2;
-            margin-bottom: 2px;
+        
+        .author-name {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 4px;
         }
-        .author a {
-            color: #1877f2;
+        
+        .author-name a {
+            color: #0772A1;
             text-decoration: none;
+            transition: color 0.2s ease;
         }
-        .author a:hover {
-            text-decoration: underline;
+        
+        .author-name a:hover {
+            color: #364247;
         }
-        .date {
-            color: #65676b;
-            font-size: 12px;
+        
+        .post-date {
+            color: #364247;
+            font-size: 13px;
+            opacity: 0.8;
         }
+        
+        /* Контент поста */
+        .post-content {
+            margin-bottom: 20px;
+        }
+        
         .post-text {
+            color: #364247;
             font-size: 16px;
-            line-height: 1.5;
-            margin: 10px 0;
+            line-height: 1.6;
+            margin-bottom: 16px;
         }
+        
         .post-image {
-            margin: 10px 0;
-            text-align: center;
+            border-radius: 24px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 24px rgba(7, 114, 161, 0.15);
         }
+        
         .post-image img {
-            max-width: 100%;
+            width: 100%;
             max-height: 400px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            object-fit: cover;
+            display: block;
         }
+        
+        /* Действия с постом */
         .post-actions {
             display: flex;
-            gap: 15px;
-            margin: 15px 0 10px;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
+            gap: 12px;
+            padding: 16px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
         }
-        .like-form, .comment-form {
-            display: inline;
-        }
-        .like-btn {
-            background: none;
-            border: none;
-            color: #65676b;
-            font-size: 16px;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 5px;
-            width: auto;
+        
+        .action-btn {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #364247;
         }
-        .like-btn:hover {
-            background-color: #f0f2f5;
+        
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(7, 114, 161, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(7, 114, 161, 0.15);
         }
-        .like-btn.liked {
-            color: #e41e3f;
+        
+        .action-btn.liked {
+            color: #0772A1;
+            background: rgba(7, 114, 161, 0.15);
+            border-color: rgba(7, 114, 161, 0.3);
         }
-        .like-btn.liked:hover {
-            background-color: #ffe6e9;
+        
+        .action-btn.liked:hover {
+            background: rgba(7, 114, 161, 0.25);
+            border-color: #0772A1;
         }
+        
+        /* Комментарии */
         .comments-section {
-            margin-top: 15px;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
+            margin-top: 20px;
         }
+        
         .comment {
-            padding: 8px;
-            margin-bottom: 8px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-left: 3px solid rgba(7, 114, 161, 0.5);
+            transition: all 0.2s ease;
         }
+        
+        .comment:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(7, 114, 161, 0.3);
+        }
+        
         .comment-header {
             display: flex;
             align-items: center;
-            margin-bottom: 5px;
+            gap: 12px;
+            margin-bottom: 8px;
         }
+        
         .comment-avatar {
-            width: 24px;
-            height: 24px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            margin-right: 8px;
             object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
+        
         .comment-avatar-placeholder {
-            width: 24px;
-            height: 24px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            background-color: #ccc;
-            margin-right: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #666;
-            font-size: 12px;
-            font-weight: bold;
+            font-size: 16px;
+            font-weight: 600;
+            color: #0772A1;
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
+        
         .comment-author {
-            font-weight: bold;
-            color: #1877f2;
-            font-size: 14px;
-            margin-right: 8px;
-        }
-        .comment-author a {
-            color: #1877f2;
+            font-weight: 600;
+            color: #0772A1;
+            font-size: 15px;
             text-decoration: none;
         }
-        .comment-author a:hover {
-            text-decoration: underline;
+        
+        .comment-author:hover {
+            color: #364247;
         }
+        
         .comment-date {
-            color: #65676b;
-            font-size: 11px;
+            color: #364247;
+            font-size: 12px;
+            opacity: 0.6;
         }
+        
         .comment-text {
+            color: #364247;
             font-size: 14px;
-            margin-left: 32px;
+            line-height: 1.6;
+            margin-left: 48px;
         }
+        
+        /* Форма комментария */
+        .comment-form {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
         .comment-input {
-            width: calc(100% - 80px);
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
+            flex: 1;
+            padding: 14px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
             font-size: 14px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            color: #364247;
         }
+        
+        .comment-input:focus {
+            outline: none;
+            border-color: rgba(7, 114, 161, 0.5);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 0 4px rgba(7, 114, 161, 0.1);
+        }
+        
         .comment-submit {
-            width: 70px;
-            padding: 8px;
-            background-color: #1877f2;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
+            padding: 14px 28px;
+            background: rgba(7, 114, 161, 0.2);
+            backdrop-filter: blur(4px);
+            color: #0772A1;
+            border: 1px solid rgba(7, 114, 161, 0.3);
+            border-radius: 30px;
             font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(7, 114, 161, 0.15);
         }
+        
+        .comment-submit:hover {
+            background: rgba(7, 114, 161, 0.3);
+            border-color: #0772A1;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(7, 114, 161, 0.25);
+        }
+        
+        /* Кнопка удаления */
         .delete-form {
-            margin-top: 10px;
+            margin-top: 16px;
             text-align: right;
         }
+        
         .delete-btn {
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            padding: 5px 15px;
-            border-radius: 5px;
-            font-size: 14px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #364247;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 13px;
             cursor: pointer;
-            width: auto;
+            transition: all 0.3s ease;
         }
+        
         .delete-btn:hover {
-            background-color: #c82333;
+            background: rgba(220, 53, 69, 0.25);
+            border-color: rgba(220, 53, 69, 0.5);
+            color: #dc3545;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(220, 53, 69, 0.15);
         }
-        .form-group {
-            margin-bottom: 15px;
+        
+        /* Пустое состояние */
+        .empty-state {
+            text-align: center;
+            color: #364247;
+            padding: 60px 32px;
+            border-radius: 32px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(7, 114, 161, 0.1);
         }
-        input, textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-            box-sizing: border-box;
+        
+        .empty-state a {
+            color: #0772A1;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s ease;
         }
-        textarea {
-            height: 100px;
-            resize: vertical;
+        
+        .empty-state a:hover {
+            color: #055a7f;
+            text-decoration: underline;
         }
-        input[type="file"] {
-            padding: 10px 0;
-            border: none;
-        }
-        .small-text {
-            color: #65676b;
-            font-size: 12px;
-            display: block;
-            margin-top: 5px;
-        }
-        button {
-            background-color: #1877f2;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-        }
-        button:hover {
-            background-color: #166fe5;
-        }
+        
+        /* Разделители */
         hr {
             border: none;
-            border-top: 1px solid #ddd;
-            margin: 20px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            margin: 28px 0;
         }
-        .welcome-message {
-            text-align: center;
-            color: #65676b;
-            margin: 20px 0;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-        }
-        .welcome-message a {
-            color: #1877f2;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .welcome-message a:hover {
-            text-decoration: underline;
-        }
-        .profile-link {
-            color: #1877f2;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .profile-link:hover {
-            text-decoration: underline;
+        
+        /* Адаптивность */
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+            
+            .user-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            
+            .nav-links {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .comment-form {
+                flex-direction: column;
+            }
+            
+            .comment-submit {
+                width: 100%;
+            }
+            
+            .post {
+                padding: 20px;
+            }
+            
+            .post-header {
+                gap: 12px;
+            }
+            
+            .avatar, .avatar-placeholder {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>PIZDA MEDIA</h1>
-        
-        <div class="user-bar">
-            {% if username %}
-                <span>Привет, <strong>{{ username }}</strong>!</span>
-                {% if username == 'dscod' %}
-                <a href="/admin">Админка</a>
+        <!-- Хедер -->
+        <div class="header">
+            <h1>PIZDA MEDIA</h1>
+            
+            <div class="user-bar">
+                {% if username %}
+                <span>Привет, <strong>{{ username }}</strong></span>
+                <div class="nav-links">
+                    {% if username == 'dscod' %}
+                    <a href="/admin" class="nav-link admin">Админка</a>
+                    {% endif %}
+                    <a href="/chats" class="nav-link">Чаты</a>
+                    <a href="/logout" class="nav-link">Выйти</a>
+                </div>
+                {% else %}
+                <div class="nav-links">
+                    <a href="/login" class="nav-link">Вход</a>
+                    <a href="/register" class="nav-link">Регистрация</a>
+                </div>
                 {% endif %}
-                <a href="/chats">Чаты</a>
-                <a href="/logout">Выйти</a>
-            {% else %}
-                <a href="/login">Вход</a> | 
-                <a href="/register">Регистрация</a>
-            {% endif %}
+            </div>
         </div>
         
-        <!-- Форма для нового поста (только для залогиненных) -->
+        <!-- Форма нового поста -->
         {% if username %}
-        <h2>➕ Новый пост</h2>
-        <form method="POST" action="/add_post" enctype="multipart/form-data">
-            <div class="form-group">
-                <textarea name="text" placeholder="Что у вас нового?" required></textarea>
-            </div>
-            <div class="form-group">
-                <input type="file" name="image" accept="image/*">
-                <span class="small-text">Можно прикрепить картинку (jpg, png, gif)</span>
-            </div>
-            <button type="submit">Опубликовать</button>
-        </form>
-        <hr>
+        <div class="post-form">
+            <h2>➕ Новый пост</h2>
+            <form method="POST" action="/add_post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <textarea name="text" placeholder="Что у вас нового?" required></textarea>
+                </div>
+                <div class="form-group">
+                    <div class="file-input-wrapper">
+                        <input type="file" name="image" accept="image/*">
+                    </div>
+                    <span class="small-text">Можно прикрепить картинку (jpg, png, gif)</span>
+                </div>
+                <button type="submit" class="btn">Опубликовать</button>
+            </form>
+        </div>
         {% else %}
-        <div class="welcome-message">
+        <div class="empty-state">
             ✍️ Чтобы писать посты, <a href="/login">войдите</a> или <a href="/register">зарегистрируйтесь</a>
         </div>
         {% endif %}
         
-        <!-- Список постов -->
-        <h2>📰 Лента</h2>
+        <!-- Лента -->
+        <div class="feed">
+            <h2>📰 Лента</h2>
 
-        {% if posts %}
-            {% for post in posts %}
-            <div class="post">
-                <!-- Заголовок поста с аватаркой и именем автора -->
-                <div class="post-header">
-                    {% if post.author_avatar %}
-                    <img src="{{ post.author_avatar }}" alt="Avatar" class="post-author-avatar">
-                    {% else %}
-                    <div class="post-author-avatar-placeholder">
-                        {{ post.author[0]|upper }}
-                    </div>
-                    {% endif %}
-                    <div class="post-author-info">
-                        <div class="author">
-                            <a href="/profile/{{ post.author }}" class="profile-link">{{ post.author }}</a>
-                        </div>
-                        <div class="date">{{ post.date }}</div>
-                    </div>
-                </div>
-                
-                {% if post.image_url %}
-                <div class="post-image">
-                    <img src="{{ post.image_url }}" alt="Изображение к посту">
-                </div>
-                {% endif %}
-
-                {% if post.image_url %}
-                <div class="post-image">
-                    <img src="{{ post.image_url }}" alt="Изображение к посту" onerror="this.style.display='none'">
-                </div>
-                {% endif %}
-                
-                <div class="post-text">{{ post.text }}</div>
-                
-                <!-- Действия с постом (лайки) -->
-                <div class="post-actions">
-                    {% if username %}
-                        {% if post.user_liked %}
-                        <form method="POST" action="/unlike/{{ post.id }}" class="like-form">
-                            <button type="submit" class="like-btn liked">❤️ {{ post.likes }}</button>
-                        </form>
+            {% if posts %}
+                {% for post in posts %}
+                <div class="post">
+                    <!-- Шапка поста -->
+                    <div class="post-header">
+                        {% if post.author_avatar %}
+                        <img src="{{ post.author_avatar }}" alt="Avatar" class="avatar">
                         {% else %}
-                        <form method="POST" action="/like/{{ post.id }}" class="like-form">
-                            <button type="submit" class="like-btn">❤️ {{ post.likes }}</button>
+                        <div class="avatar-placeholder">
+                            {{ post.author[0]|upper }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="post-author-info">
+                            <div class="author-name">
+                                <a href="/profile/{{ post.author }}">{{ post.author }}</a>
+                            </div>
+                            <div class="post-date">{{ post.date }}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Контент поста -->
+                    <div class="post-content">
+                        {% if post.image_url %}
+                        <div class="post-image">
+                            <img src="{{ post.image_url }}" alt="Изображение к посту" onerror="this.style.display='none'">
+                        </div>
+                        {% endif %}
+                        
+                        <div class="post-text">{{ post.text }}</div>
+                    </div>
+                    
+                    <!-- Действия с постом -->
+                    <div class="post-actions">
+                        {% if username %}
+                            {% if post.user_liked %}
+                            <form method="POST" action="/unlike/{{ post.id }}" class="like-form">
+                                <button type="submit" class="action-btn liked">❤️ {{ post.likes }}</button>
+                            </form>
+                            {% else %}
+                            <form method="POST" action="/like/{{ post.id }}" class="like-form">
+                                <button type="submit" class="action-btn">❤️ {{ post.likes }}</button>
+                            </form>
+                            {% endif %}
+                        {% else %}
+                        <span class="action-btn">❤️ {{ post.likes }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Комментарии -->
+                    <div class="comments-section">
+                        {% if post.comments_preview %}
+                            {% for comment in post.comments_preview %}
+                            <div class="comment">
+                                <div class="comment-header">
+                                    {% if comment.author_avatar %}
+                                    <img src="{{ comment.author_avatar }}" alt="Avatar" class="comment-avatar">
+                                    {% else %}
+                                    <div class="comment-avatar-placeholder">
+                                        {{ comment.author[0]|upper }}
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <a href="/profile/{{ comment.author }}" class="comment-author">{{ comment.author }}</a>
+                                        <div class="comment-date">{{ comment.date }}</div>
+                                    </div>
+                                </div>
+                                <div class="comment-text">{{ comment.content }}</div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <!-- Форма комментария -->
+                        {% if username %}
+                        <form method="POST" action="/comment/{{ post.id }}" class="comment-form">
+                            <input type="text" name="content" placeholder="Написать комментарий..." class="comment-input" required>
+                            <button type="submit" class="comment-submit">Отправить</button>
                         </form>
                         {% endif %}
-                    {% else %}
-                        <span class="like-btn">❤️ {{ post.likes }}</span>
-                    {% endif %}
-                </div>
-                
-                <!-- Комментарии -->
-                <div class="comments-section">
-                    {% if post.comments_preview %}
-                        {% for comment in post.comments_preview %}
-                        <div class="comment">
-                            <div class="comment-header">
-                                {% if comment.author_avatar %}
-                                <img src="{{ comment.author_avatar }}" alt="Avatar" class="comment-avatar">
-                                {% else %}
-                                <div class="comment-avatar-placeholder">
-                                    {{ comment.author[0]|upper }}
-                                </div>
-                                {% endif %}
-                                <div class="comment-author">
-                                    <a href="/profile/{{ comment.author }}" class="profile-link">{{ comment.author }}</a>
-                                </div>
-                                <div class="comment-date">{{ comment.date }}</div>
-                            </div>
-                            <div class="comment-text">{{ comment.content }}</div>
-                        </div>
-                        {% endfor %}
-                    {% endif %}
+                    </div>
                     
-                    <!-- Форма добавления комментария -->
+                    <!-- Кнопка удаления -->
                     {% if username %}
-                    <form method="POST" action="/comment/{{ post.id }}" style="margin-top: 10px; display: flex; gap: 8px;">
-                        <input type="text" name="content" placeholder="Написать комментарий..." class="comment-input" style="flex: 1;" required>
-                        <button type="submit" class="comment-submit" style="width: auto; padding: 8px 16px; background-color: #1877f2; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 14px; white-space: nowrap;">Отправить</button>
-                    </form>
+                        {% if username == post.author or (is_admin and username != post.author) %}
+                        <form method="POST" action="/delete_post/{{ post.id }}" class="delete-form">
+                            <button type="submit" class="delete-btn" onclick="return confirm('Точно удалить этот пост?')">🗑️ Удалить</button>
+                        </form>
+                        {% endif %}
                     {% endif %}
                 </div>
-                
-                <!-- Кнопка удаления (только для своих постов) -->
-                {% if username %}
-                    {% if username == post.author or (is_admin and username != post.author) %}
-                    <form method="POST" action="/delete_post/{{ post.id }}" class="delete-form">
-                        <button type="submit" class="delete-btn" onclick="return confirm('Точно удалить этот пост?')">🗑️ Удалить</button>
-                    </form>
-                    {% endif %}
-                {% endif %}
-
-            </div>
-            {% endfor %}
-        {% else %}
-            <div class="welcome-message">
+                {% endfor %}
+            {% else %}
+            <div class="empty-state">
                 😢 Пока нет постов. Будь первым!
             </div>
-        {% endif %}
+            {% endif %}
+        </div>
     </div>
 </body>
 </html>

@@ -513,3 +513,27 @@ async def following_page(request: Request, username: str):
             "type": "following"
         }
     )
+
+@app.get("/api/search_users")
+async def search_users(request: Request, q: str):
+    username = request.session.get("username")
+    if not username:
+        return {"users": []}
+    
+    try:
+        with httpx.Client() as client:
+            response = client.get(
+                f"{SUPABASE_URL}/rest/v1/users",
+                headers=database.HEADERS,
+                params={
+                    "username": f"ilike.*{q}*",
+                    "select": "username,avatar_url",
+                    "limit": 10
+                }
+            )
+            if response.status_code == 200:
+                return {"users": response.json()}
+    except Exception as e:
+        print(f"Ошибка поиска: {e}")
+    
+    return {"users": []}

@@ -3,253 +3,578 @@
 <head>
     <title>Профиль {{ profile_user }} - PIZDA MEDIA</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background-color: #f0f2f5;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #FFF1E1 0%, #FDF8F2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
         }
+        
+        /* Стеклянные шары на фоне */
+        body::before {
+            content: '';
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(7, 114, 161, 0.15), rgba(7, 114, 161, 0.05));
+            top: -100px;
+            left: -100px;
+            z-index: -1;
+            filter: blur(50px);
+        }
+        
+        body::after {
+            content: '';
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 70% 70%, rgba(255, 189, 115, 0.2), rgba(255, 189, 115, 0.05));
+            bottom: -150px;
+            right: -150px;
+            z-index: -1;
+            filter: blur(60px);
+        }
+        
+        .container {
+            max-width: 680px;
+            width: 100%;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Хедер */
+        .header {
+            padding: 24px;
+            margin-bottom: 24px;
+            border-radius: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(7, 114, 161, 0.1);
+        }
+        
         h1 {
-            color: #1877f2;
+            color: #0772A1;
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin-bottom: 16px;
+            text-shadow: 0 4px 12px rgba(7, 114, 161, 0.2);
             text-align: center;
         }
+        
         .user-bar {
-            text-align: right;
-            margin-bottom: 20px;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 20px;
+            padding: 12px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
         }
-        .user-bar a {
-            color: #1877f2;
+        
+        .user-bar span {
+            color: #364247;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        .user-bar strong {
+            color: #0772A1;
+            font-weight: 600;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .nav-link {
+            color: #364247;
             text-decoration: none;
-            margin-left: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
+        
+        .nav-link:hover {
+            background: rgba(7, 114, 161, 0.2);
+            border-color: rgba(7, 114, 161, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(7, 114, 161, 0.15);
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 16px;
+            color: #0772A1;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            background: rgba(7, 114, 161, 0.15);
+            border-color: #0772A1;
+            transform: translateX(-5px);
+        }
+        
+        /* Основной контент */
+        .content {
+            padding: 28px;
+            border-radius: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(7, 114, 161, 0.1);
+        }
+        
+        /* Профиль */
         .profile-header {
             text-align: center;
-            margin: 30px 0;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 10px;
+            margin-bottom: 32px;
         }
+        
         .avatar-container {
             position: relative;
             width: 150px;
             height: 150px;
-            margin: 0 auto 20px;
+            margin: 0 auto 24px;
         }
+        
         .avatar {
             width: 150px;
             height: 150px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid #1877f2;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px rgba(7, 114, 161, 0.2);
         }
+        
         .avatar-placeholder {
             width: 150px;
             height: 150px;
             border-radius: 50%;
-            background-color: #ddd;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 48px;
-            color: #666;
-            border: 3px solid #1877f2;
+            font-weight: 600;
+            color: #0772A1;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px rgba(7, 114, 161, 0.2);
         }
+        
         .upload-avatar-btn {
             position: absolute;
             bottom: 10px;
             right: 10px;
-            background-color: #1877f2;
-            color: white;
-            border: none;
-            border-radius: 50%;
             width: 40px;
             height: 40px;
+            border-radius: 50%;
+            background: rgba(7, 114, 161, 0.2);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #0772A1;
             font-size: 20px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.3s ease;
         }
+        
         .upload-avatar-btn:hover {
-            background-color: #166fe5;
+            background: rgba(7, 114, 161, 0.35);
+            border-color: #0772A1;
+            transform: scale(1.1);
         }
+        
         #avatar-upload {
             display: none;
         }
+        
         .profile-username {
-            font-size: 24px;
-            font-weight: bold;
-            color: #1877f2;
+            font-size: 28px;
+            font-weight: 600;
+            color: #0772A1;
+            margin-bottom: 16px;
+            text-shadow: 0 4px 12px rgba(7, 114, 161, 0.2);
         }
+        
         .profile-stats {
             display: flex;
             justify-content: center;
-            gap: 30px;
-            margin-top: 15px;
+            gap: 32px;
+            margin-bottom: 24px;
         }
+        
         .stat {
             text-align: center;
+            cursor: pointer;
+            padding: 12px 24px;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
         }
+        
+        .stat:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            border-color: rgba(7, 114, 161, 0.3);
+        }
+        
         .stat-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: #1877f2;
+            font-size: 24px;
+            font-weight: 600;
+            color: #0772A1;
         }
+        
         .stat-label {
-            color: #65676b;
+            color: #364247;
             font-size: 14px;
+            opacity: 0.7;
         }
+        
+        .profile-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+        
+        .action-btn {
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            border: 1px solid transparent;
+        }
+        
+        .action-btn.follow {
+            background: rgba(7, 114, 161, 0.2);
+            backdrop-filter: blur(4px);
+            color: #0772A1;
+            border-color: rgba(7, 114, 161, 0.3);
+        }
+        
+        .action-btn.follow:hover {
+            background: rgba(7, 114, 161, 0.35);
+            border-color: #0772A1;
+            transform: translateY(-2px);
+        }
+        
+        .action-btn.unfollow {
+            background: rgba(220, 53, 69, 0.15);
+            backdrop-filter: blur(4px);
+            color: #dc3545;
+            border-color: rgba(220, 53, 69, 0.3);
+        }
+        
+        .action-btn.unfollow:hover {
+            background: rgba(220, 53, 69, 0.25);
+            border-color: #dc3545;
+            transform: translateY(-2px);
+        }
+        
+        .action-btn.message {
+            background: rgba(255, 189, 115, 0.15);
+            backdrop-filter: blur(4px);
+            color: #FFBD73;
+            border-color: rgba(255, 189, 115, 0.3);
+        }
+        
+        .action-btn.message:hover {
+            background: rgba(255, 189, 115, 0.25);
+            border-color: #FFBD73;
+            transform: translateY(-2px);
+        }
+        
+        /* Посты */
+        .posts-section {
+            margin-top: 32px;
+        }
+        
+        .posts-section h2 {
+            color: #0772A1;
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 2px 8px rgba(7, 114, 161, 0.2);
+        }
+        
         .post {
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            background-color: white;
+            padding: 24px;
+            margin-bottom: 20px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
         }
+        
+        .post:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(7, 114, 161, 0.3);
+        }
+        
         .post-header {
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
+            gap: 12px;
+            margin-bottom: 16px;
         }
+        
         .post-author-avatar {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            margin-right: 10px;
             object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.5);
         }
+        
+        .post-author-avatar-placeholder {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #0772A1;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+        
         .post-author-info {
             flex: 1;
         }
+        
         .post-author-name {
-            font-weight: bold;
-            color: #1877f2;
+            font-weight: 600;
+            color: #0772A1;
+            font-size: 16px;
+            margin-bottom: 4px;
         }
+        
         .post-date {
-            color: #65676b;
+            color: #364247;
             font-size: 12px;
+            opacity: 0.7;
         }
+        
+        .post-image {
+            margin: 16px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
         .post-image img {
-            max-width: 100%;
+            width: 100%;
             max-height: 400px;
-            border-radius: 8px;
-            margin: 10px 0;
+            object-fit: cover;
+            display: block;
         }
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #1877f2;
-            text-decoration: none;
+        
+        .post-text {
+            color: #364247;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .empty-message {
+            text-align: center;
+            color: #364247;
+            padding: 48px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            font-size: 16px;
+            opacity: 0.7;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+            
+            .user-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            
+            .profile-stats {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .stat {
+                width: 100%;
+            }
+            
+            .profile-actions {
+                flex-direction: column;
+            }
+            
+            .action-btn {
+                width: 100%;
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="/" class="back-link">← На главную</a>
-        
-        <div class="user-bar">
-            {% if username %}
-                <span>Привет, <strong>{{ username }}</strong>!</span>
-                <a href="/logout">Выйти</a>
-            {% else %}
-                <a href="/login">Вход</a> | 
-                <a href="/register">Регистрация</a>
-            {% endif %}
+        <!-- Хедер -->
+        <div class="header">
+            <a href="/" class="back-link">← На главную</a>
+            
+            <div class="user-bar">
+                {% if username %}
+                <span>Привет, <strong>{{ username }}</strong></span>
+                <div class="nav-links">
+                    <a href="/logout" class="nav-link">Выйти</a>
+                </div>
+                {% else %}
+                <div class="nav-links">
+                    <a href="/login" class="nav-link">Вход</a>
+                    <a href="/register" class="nav-link">Регистрация</a>
+                </div>
+                {% endif %}
+            </div>
         </div>
         
-        <div class="profile-header">
-            <div class="avatar-container">
-                {% if profile_avatar %}
-                <img src="{{ profile_avatar }}" alt="Avatar" class="avatar">
-                {% else %}
-                <div class="avatar-placeholder">
-                    {{ profile_user[0]|upper }}
+        <!-- Профиль -->
+        <div class="content">
+            <div class="profile-header">
+                <div class="avatar-container">
+                    {% if profile_avatar %}
+                    <img src="{{ profile_avatar }}" alt="Avatar" class="avatar">
+                    {% else %}
+                    <div class="avatar-placeholder">
+                        {{ profile_user[0]|upper }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if username == profile_user %}
+                    <form method="POST" action="/upload_avatar" enctype="multipart/form-data" id="avatar-form">
+                        <input type="file" name="avatar" id="avatar-upload" accept="image/*" onchange="document.getElementById('avatar-form').submit()">
+                        <button type="button" class="upload-avatar-btn" onclick="document.getElementById('avatar-upload').click()">📷</button>
+                    </form>
+                    {% endif %}
                 </div>
-                {% endif %}
                 
-                {% if username == profile_user %}
-                <form method="POST" action="/upload_avatar" enctype="multipart/form-data" id="avatar-form">
-                    <input type="file" name="avatar" id="avatar-upload" accept="image/*" onchange="document.getElementById('avatar-form').submit()">
-                    <button type="button" class="upload-avatar-btn" onclick="document.getElementById('avatar-upload').click()">📷</button>
-                </form>
-                {% endif %}
-            </div>
-            
-            <div class="profile-username">{{ profile_user }}</div>
-            
-            <div class="profile-stats">
-                <div class="stat" onclick="window.location='/followers/{{ profile_user }}'" style="cursor: pointer;">
-                    <div class="stat-value">{{ followers_count }}</div>
-                    <div class="stat-label">подписчиков</div>
+                <div class="profile-username">{{ profile_user }}</div>
+                
+                <div class="profile-stats">
+                    <div class="stat" onclick="window.location='/followers/{{ profile_user }}'">
+                        <div class="stat-value">{{ followers_count }}</div>
+                        <div class="stat-label">подписчиков</div>
+                    </div>
+                    <div class="stat" onclick="window.location='/following/{{ profile_user }}'">
+                        <div class="stat-value">{{ following_count }}</div>
+                        <div class="stat-label">подписок</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">{{ posts|length }}</div>
+                        <div class="stat-label">постов</div>
+                    </div>
                 </div>
-                <div class="stat" onclick="window.location='/following/{{ profile_user }}'" style="cursor: pointer;">
-                    <div class="stat-value">{{ following_count }}</div>
-                    <div class="stat-label">подписок</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-value">{{ posts|length }}</div>
-                    <div class="stat-label">постов</div>
-                </div>
-            </div>
-            
-            <div class="profile-actions" style="margin-top: 20px;">
+                
                 {% if username and username != profile_user %}
+                <div class="profile-actions">
                     {% if is_following %}
                     <form method="POST" action="/unfollow/{{ profile_user }}" style="display: inline;">
-                        <button type="submit" style="background-color: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">✅ Отписаться</button>
+                        <button type="submit" class="action-btn unfollow">✅ Отписаться</button>
                     </form>
                     {% else %}
                     <form method="POST" action="/follow/{{ profile_user }}" style="display: inline;">
-                        <button type="submit" style="background-color: #1877f2; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">➕ Подписаться</button>
+                        <button type="submit" class="action-btn follow">➕ Подписаться</button>
                     </form>
                     {% endif %}
                     
-                    <a href="/start_chat/{{ profile_user }}" style="background-color: #1877f2; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block; margin-left: 10px;">💬 Написать</a>
+                    <a href="/start_chat/{{ profile_user }}" class="action-btn message">💬 Написать</a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Посты пользователя -->
+            <div class="posts-section">
+                <h2>📰 Посты {{ profile_user }}</h2>
+                
+                {% if posts %}
+                    {% for post in posts %}
+                    <div class="post">
+                        <div class="post-header">
+                            {% if post.author_avatar %}
+                            <img src="{{ post.author_avatar }}" alt="Avatar" class="post-author-avatar">
+                            {% else %}
+                            <div class="post-author-avatar-placeholder">
+                                {{ post.author[0]|upper }}
+                            </div>
+                            {% endif %}
+                            <div class="post-author-info">
+                                <div class="post-author-name">{{ post.author }}</div>
+                                <div class="post-date">{{ post.date }}</div>
+                            </div>
+                        </div>
+                        
+                        {% if post.image_url %}
+                        <div class="post-image">
+                            <img src="{{ post.image_url }}" alt="Изображение к посту" onerror="this.style.display='none'">
+                        </div>
+                        {% endif %}
+                        
+                        <div class="post-text">{{ post.text }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-message">
+                        😢 У пользователя пока нет постов
+                    </div>
                 {% endif %}
             </div>
         </div>
-        
-        <h2>Посты {{ profile_user }}</h2>
-        
-        {% if posts %}
-            {% for post in posts %}
-            <div class="post">
-                <div class="post-header">
-                    {% if post.author_avatar %}
-                    <img src="{{ post.author_avatar }}" alt="Avatar" class="post-author-avatar">
-                    {% else %}
-                    <div class="post-author-avatar" style="background-color: #ddd; display: flex; align-items: center; justify-content: center; color: #666;">
-                        {{ post.author[0]|upper }}
-                    </div>
-                    {% endif %}
-                    <div class="post-author-info">
-                        <div class="post-author-name">{{ post.author }}</div>
-                        <div class="post-date">{{ post.date }}</div>
-                    </div>
-                </div>
-                
-                {% if post.image_url %}
-                <div class="post-image">
-                    <img src="{{ post.image_url }}" alt="Изображение к посту">
-                </div>
-                {% endif %}
-                
-                <div>{{ post.text }}</div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <p style="text-align: center; color: #65676b;">У пользователя пока нет постов</p>
-        {% endif %}
     </div>
 </body>
 </html>

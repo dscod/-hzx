@@ -3,138 +3,318 @@
 <head>
     <title>{% if type == 'followers' %}Подписчики{% else %}Подписки{% endif %} - PIZDA MEDIA</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background-color: #f0f2f5;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #FFF1E1 0%, #FDF8F2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
         }
+        
+        /* Стеклянные шары на фоне */
+        body::before {
+            content: '';
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(7, 114, 161, 0.15), rgba(7, 114, 161, 0.05));
+            top: -100px;
+            left: -100px;
+            z-index: -1;
+            filter: blur(50px);
+        }
+        
+        body::after {
+            content: '';
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 70% 70%, rgba(255, 189, 115, 0.2), rgba(255, 189, 115, 0.05));
+            bottom: -150px;
+            right: -150px;
+            z-index: -1;
+            filter: blur(60px);
+        }
+        
+        .container {
+            max-width: 680px;
+            width: 100%;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Хедер */
+        .header {
+            padding: 24px;
+            margin-bottom: 24px;
+            border-radius: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(7, 114, 161, 0.1);
+        }
+        
         h1 {
-            color: #1877f2;
+            color: #0772A1;
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin-bottom: 16px;
+            text-shadow: 0 4px 12px rgba(7, 114, 161, 0.2);
             text-align: center;
         }
+        
         .user-bar {
-            text-align: right;
-            margin-bottom: 20px;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 20px;
+            padding: 12px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
         }
-        .user-bar a {
-            color: #1877f2;
+        
+        .user-bar span {
+            color: #364247;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        .user-bar strong {
+            color: #0772A1;
+            font-weight: 600;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .nav-link {
+            color: #364247;
             text-decoration: none;
-            margin-left: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
+        
+        .nav-link:hover {
+            background: rgba(7, 114, 161, 0.2);
+            border-color: rgba(7, 114, 161, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(7, 114, 161, 0.15);
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 16px;
+            color: #0772A1;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            background: rgba(7, 114, 161, 0.15);
+            border-color: #0772A1;
+            transform: translateX(-5px);
+        }
+        
+        /* Основной контент */
+        .content {
+            padding: 28px;
+            border-radius: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(7, 114, 161, 0.1);
+        }
+        
+        /* Список пользователей */
         .users-list {
             list-style: none;
             padding: 0;
         }
+        
         .user-item {
             display: flex;
             align-items: center;
-            padding: 15px;
-            border-bottom: 1px solid #eee;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
         }
+        
         .user-item:hover {
-            background-color: #f5f5f5;
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(7, 114, 161, 0.3);
+            box-shadow: 0 8px 24px rgba(7, 114, 161, 0.15);
         }
+        
         .user-avatar {
-            width: 50px;
-            height: 50px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
-            margin-right: 15px;
+            margin-right: 16px;
             object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 12px rgba(7, 114, 161, 0.2);
         }
+        
         .user-avatar-placeholder {
-            width: 50px;
-            height: 50px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
-            background-color: #ddd;
-            margin-right: 15px;
+            margin-right: 16px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(4px);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #666;
-            font-weight: bold;
-            font-size: 20px;
+            font-weight: 600;
+            font-size: 24px;
+            color: #0772A1;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 12px rgba(7, 114, 161, 0.2);
         }
+        
         .user-info {
             flex: 1;
         }
+        
         .user-name {
-            font-weight: bold;
-            color: #1877f2;
-            margin-bottom: 5px;
+            font-weight: 600;
+            color: #0772A1;
+            font-size: 18px;
+            margin-bottom: 4px;
         }
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #1877f2;
-            text-decoration: none;
-        }
+        
         .empty-message {
             text-align: center;
-            color: #65676b;
-            padding: 40px;
+            color: #364247;
+            padding: 60px 32px;
+            border-radius: 32px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            font-size: 16px;
+            opacity: 0.7;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+            
+            .user-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            
+            .user-item {
+                padding: 12px;
+            }
+            
+            .user-avatar, .user-avatar-placeholder {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
+            
+            .user-name {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="/profile/{{ profile_user }}" class="back-link">← Назад к профилю</a>
-        
-        <div class="user-bar">
-            {% if username %}
-                <span>Привет, <strong>{{ username }}</strong>!</span>
-                <a href="/logout">Выйти</a>
-            {% else %}
-                <a href="/login">Вход</a> | 
-                <a href="/register">Регистрация</a>
-            {% endif %}
+        <!-- Хедер -->
+        <div class="header">
+            <a href="/profile/{{ profile_user }}" class="back-link">← Назад к профилю</a>
+            
+            <div class="user-bar">
+                {% if username %}
+                <span>Привет, <strong>{{ username }}</strong></span>
+                <div class="nav-links">
+                    <a href="/logout" class="nav-link">Выйти</a>
+                </div>
+                {% else %}
+                <div class="nav-links">
+                    <a href="/login" class="nav-link">Вход</a>
+                    <a href="/register" class="nav-link">Регистрация</a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <h1>
+                {% if type == 'followers' %}
+                    👥 Подписчики {{ profile_user }}
+                {% else %}
+                    📋 Подписки {{ profile_user }}
+                {% endif %}
+            </h1>
         </div>
         
-        <h1>
-            {% if type == 'followers' %}
-                👥 Подписчики {{ profile_user }}
-            {% else %}
-                📋 Подписки {{ profile_user }}
-            {% endif %}
-        </h1>
-        
-        <div class="users-list">
-            {% if users %}
-                {% for user in users %}
-                <div class="user-item" onclick="window.location='/profile/{{ user.username }}'">
-                    {% if user.avatar_url %}
-                    <img src="{{ user.avatar_url }}" alt="Avatar" class="user-avatar">
-                    {% else %}
-                    <div class="user-avatar-placeholder">
-                        {{ user.username[0]|upper }}
+        <!-- Список пользователей -->
+        <div class="content">
+            <div class="users-list">
+                {% if users %}
+                    {% for user in users %}
+                    <div class="user-item" onclick="window.location='/profile/{{ user.username }}'">
+                        {% if user.avatar_url %}
+                        <img src="{{ user.avatar_url }}" alt="Avatar" class="user-avatar">
+                        {% else %}
+                        <div class="user-avatar-placeholder">
+                            {{ user.username[0]|upper }}
+                        </div>
+                        {% endif %}
+                        <div class="user-info">
+                            <div class="user-name">{{ user.username }}</div>
+                        </div>
                     </div>
-                    {% endif %}
-                    <div class="user-info">
-                        <div class="user-name">{{ user.username }}</div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-message">
+                        {% if type == 'followers' %}
+                            😢 У пользователя пока нет подписчиков
+                        {% else %}
+                            😢 Пользователь ни на кого не подписан
+                        {% endif %}
                     </div>
-                </div>
-                {% endfor %}
-            {% else %}
-                <div class="empty-message">
-                    {% if type == 'followers' %}
-                        😢 У пользователя пока нет подписчиков
-                    {% else %}
-                        😢 Пользователь ни на кого не подписан
-                    {% endif %}
-                </div>
-            {% endif %}
+                {% endif %}
+            </div>
         </div>
     </div>
 </body>

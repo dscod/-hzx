@@ -475,33 +475,52 @@ def get_or_create_private_chat(user1_id, user2_id):
         return None
 
 def create_private_chat(user1_id, user2_id):
+    """Создает новый личный чат между двумя пользователями"""
     try:
         print(f"🔍 create_private_chat: {user1_id} - {user2_id}")
         
         with httpx.Client() as client:
+            # Создаем чат с заголовком для возврата созданной записи
             chat_response = client.post(
                 f"{SUPABASE_URL}/rest/v1/chats",
-                headers=HEADERS,
-                json={"name": None}
+                headers={
+                    **HEADERS,
+                    "Prefer": "return=representation"  # Добавляем этот заголовок
+                },
+                json={"name": None}  # Для личных чатов имя не нужно
             )
+            
+            print(f"🔍 Статус создания чата: {chat_response.status_code}")
+            print(f"🔍 Ответ: {chat_response.text}")
             
             if chat_response.status_code != 201:
                 print(f"❌ Ошибка создания чата: {chat_response.text}")
                 return None
             
-            chat_id = chat_response.json()[0]['id']
+            # Теперь response.json() вернет созданный объект
+            chat_data = chat_response.json()
+            if not chat_data or len(chat_data) == 0:
+                print("❌ Пустой ответ от сервера")
+                return None
+                
+            chat_id = chat_data[0]['id']
+            print(f"🔍 Создан чат с ID: {chat_id}")
             
-            client.post(
+            # Добавляем первого участника
+            member1_response = client.post(
                 f"{SUPABASE_URL}/rest/v1/chat_members",
                 headers=HEADERS,
                 json={"chat_id": chat_id, "user_id": user1_id}
             )
+            print(f"🔍 Добавление user1: {member1_response.status_code}")
             
-            client.post(
+            # Добавляем второго участника
+            member2_response = client.post(
                 f"{SUPABASE_URL}/rest/v1/chat_members",
                 headers=HEADERS,
                 json={"chat_id": chat_id, "user_id": user2_id}
             )
+            print(f"🔍 Добавление user2: {member2_response.status_code}")
             
             return chat_id
             
